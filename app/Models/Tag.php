@@ -17,6 +17,6 @@ class Tag extends Model
 
     public function vocabularies(): BelongsToMany
     {
-        return $this->belongsToMany(Vocabulary::class);
+        return $this->belongsToMany(Vocabulary::class, 'vocabulary_tag');
     }
 }

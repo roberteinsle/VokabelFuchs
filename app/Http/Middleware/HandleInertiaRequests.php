@@ -29,10 +29,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $childId = $request->session()->get('child_id');
+        $child = $childId ? \App\Models\Child::find($childId) : null;
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+            ],
+            'child' => $child ? [
+                'id'   => $child->id,
+                'name' => $child->name,
+            ] : null,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error'   => $request->session()->get('error'),
             ],
         ];
     }

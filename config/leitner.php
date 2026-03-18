@@ -11,7 +11,7 @@ return [
     |
     */
     'intervals' => [
-        1 => 1,   // Drawer 1: daily
+        1 => 0,   // Drawer 1: daily (due today)
         2 => 2,   // Drawer 2: every 2 days
         3 => 5,   // Drawer 3: every 5 days
         4 => 10,  // Drawer 4: every 10 days
