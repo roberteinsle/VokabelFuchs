@@ -1,0 +1,63 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    environment:
+      - APP_ENV=local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vokabelfuchs
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - vokabelfuchs
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: vokabelfuchs
+      POSTGRES_USER: vokabelfuchs
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vokabelfuchs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vokabelfuchs
+
+  node:
+    image: node:20-alpine
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    networks:
+      - vokabelfuchs
+
+volumes:
+  postgres_data:
+
+networks:
+  vokabelfuchs:
+    driver: bridge
