@@ -3,8 +3,21 @@ import AppLayout from '@/components/layout/AppLayout';
 import ChildLayout from '@/components/layout/ChildLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+const MODE_LABELS: Record<string, string> = {
+    multiple_choice: 'Auswählen',
+    free_text:       'Schreiben',
+    dictation:       'Hören & Schreiben',
+};
+const MODE_COLORS: Record<string, string> = {
+    multiple_choice: 'bg-blue-500',
+    free_text:       'bg-emerald-500',
+    dictation:       'bg-purple-500',
+};
+const MODE_KEYS = ['multiple_choice', 'free_text', 'dictation'];
+
 interface Stats {
     drawer_counts: Record<number, number>;
+    drawer_counts_by_mode: Record<string, Record<number, number>>;
     total_cards: number;
     mastered_cards: number;
     total_minutes: number;
@@ -51,28 +64,41 @@ function StatsContent({ child, stats }: Props) {
                 </Card>
             </div>
 
-            {/* Drawer distribution */}
+            {/* Drawer distribution per mode */}
             <Card>
-                <CardHeader><CardTitle>Kartenverteilung</CardTitle></CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-5 gap-2">
-                        {[1, 2, 3, 4, 5].map((d) => {
-                            const count = stats.drawer_counts[d] ?? 0;
-                            const pct = stats.total_cards > 0 ? Math.round((count / stats.total_cards) * 100) : 0;
-                            return (
-                                <div key={d} className="text-center">
-                                    <div className="h-20 bg-gray-100 rounded flex items-end overflow-hidden">
-                                        <div
-                                            className="w-full bg-blue-500 rounded-b transition-all"
-                                            style={{ height: `${pct}%` }}
-                                        />
-                                    </div>
-                                    <div className="text-xs font-medium mt-1">F{d}</div>
-                                    <div className="text-xs text-gray-500">{count}</div>
+                <CardHeader><CardTitle>Kartenverteilung nach Lernmodus</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                    {MODE_KEYS.map((mode) => {
+                        const counts = stats.drawer_counts_by_mode?.[mode] ?? {};
+                        const modeTotal = Object.values(counts).reduce((s, n) => s + n, 0);
+                        const color = MODE_COLORS[mode];
+                        return (
+                            <div key={mode}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-gray-700">{MODE_LABELS[mode]}</span>
+                                    <span className="text-xs text-gray-400">{modeTotal} Karten</span>
                                 </div>
-                            );
-                        })}
-                    </div>
+                                <div className="grid grid-cols-5 gap-2">
+                                    {[1, 2, 3, 4, 5].map((d) => {
+                                        const count = counts[d] ?? 0;
+                                        const pct = modeTotal > 0 ? Math.round((count / modeTotal) * 100) : 0;
+                                        return (
+                                            <div key={d} className="text-center">
+                                                <div className="h-16 bg-gray-100 rounded flex items-end overflow-hidden">
+                                                    <div
+                                                        className={`w-full ${color} rounded-b transition-all`}
+                                                        style={{ height: `${Math.max(pct, count > 0 ? 8 : 0)}%` }}
+                                                    />
+                                                </div>
+                                                <div className="text-xs font-medium mt-1">F{d}</div>
+                                                <div className="text-xs text-gray-500">{count}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </CardContent>
             </Card>
 

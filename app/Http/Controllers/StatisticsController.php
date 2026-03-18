@@ -51,6 +51,14 @@ class StatisticsController extends Controller
             ->pluck('count', 'drawer')
             ->toArray();
 
+        $drawerCountsByMode = FlashCard::where('child_id', $childId)
+            ->selectRaw('training_mode, drawer, COUNT(*) as count')
+            ->groupBy('training_mode', 'drawer')
+            ->get()
+            ->groupBy('training_mode')
+            ->map(fn ($items) => $items->pluck('count', 'drawer')->toArray())
+            ->toArray();
+
         $totalCards    = array_sum($drawerCounts);
         $masteredCards = $drawerCounts[5] ?? 0;
 
@@ -101,8 +109,9 @@ class StatisticsController extends Controller
             });
 
         return [
-            'drawer_counts'    => $drawerCounts,
-            'total_cards'      => $totalCards,
+            'drawer_counts'         => $drawerCounts,
+            'drawer_counts_by_mode' => $drawerCountsByMode,
+            'total_cards'           => $totalCards,
             'mastered_cards'   => $masteredCards,
             'total_minutes'    => $totalMinutes,
             'accuracy_percent' => $totalAnswers > 0 ? round(($totalCorrect / $totalAnswers) * 100) : 0,

@@ -6,12 +6,19 @@ import { Button } from '@/components/ui/button';
 import { LinkButton } from '@/components/ui/link-button';
 import { BookOpen, Clock, Plus, Star, Users } from 'lucide-react';
 
+const MODE_LABELS: Record<string, string> = {
+    multiple_choice: 'Auswählen',
+    free_text:       'Schreiben',
+    dictation:       'Hören & Schreiben',
+};
+const MODE_KEYS = ['multiple_choice', 'free_text', 'dictation'];
+
 interface ChildStat {
     id: number;
     name: string;
-    username: string;
     language_pair: string;
     drawer_counts: Record<number, number>;
+    drawer_counts_by_mode: Record<string, Record<number, number>>;
     total_cards: number;
     mastered_cards: number;
     last_activity: string | null;
@@ -102,13 +109,35 @@ export default function ParentDashboard({ child_stats, vocabulary_count, tag_cou
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-5 gap-1 mb-3">
-                                        {[1, 2, 3, 4, 5].map((d) => (
-                                            <div key={d} className="text-center bg-gray-50 rounded p-1">
-                                                <div className="text-sm font-bold">{child.drawer_counts[d] ?? 0}</div>
-                                                <div className="text-xs text-gray-500">F{d}</div>
+                                    <div className="space-y-2 mb-3">
+                                        {MODE_KEYS.map((mode) => {
+                                            const counts = child.drawer_counts_by_mode[mode] ?? {};
+                                            const total = Object.values(counts).reduce((s, n) => s + n, 0);
+                                            if (total === 0) return null;
+                                            return (
+                                                <div key={mode}>
+                                                    <div className="text-xs text-gray-400 mb-1">{MODE_LABELS[mode]}</div>
+                                                    <div className="grid grid-cols-5 gap-1">
+                                                        {[1, 2, 3, 4, 5].map((d) => (
+                                                            <div key={d} className="text-center bg-gray-50 rounded p-1">
+                                                                <div className="text-sm font-bold">{counts[d] ?? 0}</div>
+                                                                <div className="text-xs text-gray-500">F{d}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {Object.keys(child.drawer_counts_by_mode).length === 0 && (
+                                            <div className="grid grid-cols-5 gap-1">
+                                                {[1, 2, 3, 4, 5].map((d) => (
+                                                    <div key={d} className="text-center bg-gray-50 rounded p-1">
+                                                        <div className="text-sm font-bold">0</div>
+                                                        <div className="text-xs text-gray-500">F{d}</div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-gray-500">
                                         <span className="flex items-center gap-1">

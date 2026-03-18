@@ -21,6 +21,14 @@ class ParentDashboardController extends Controller
                 ->pluck('count', 'drawer')
                 ->toArray();
 
+            $drawerCountsByMode = FlashCard::where('child_id', $child->id)
+                ->selectRaw('training_mode, drawer, COUNT(*) as count')
+                ->groupBy('training_mode', 'drawer')
+                ->get()
+                ->groupBy('training_mode')
+                ->map(fn ($items) => $items->pluck('count', 'drawer')->toArray())
+                ->toArray();
+
             $lastSession = $child->trainingSessions()
                 ->whereNotNull('ended_at')
                 ->latest('ended_at')
@@ -30,9 +38,10 @@ class ParentDashboardController extends Controller
                 'id'             => $child->id,
                 'name'           => $child->name,
                 'language_pair'  => $child->language_pair?->label(),
-                'drawer_counts'  => $drawerCounts,
-                'total_cards'    => array_sum($drawerCounts),
-                'mastered_cards' => $drawerCounts[5] ?? 0,
+                'drawer_counts'         => $drawerCounts,
+                'drawer_counts_by_mode' => $drawerCountsByMode,
+                'total_cards'           => array_sum($drawerCounts),
+                'mastered_cards'        => $drawerCounts[5] ?? 0,
                 'last_activity'  => $lastSession?->ended_at,
                 'balance_gaming'  => $child->media_time_balance_gaming,
                 'balance_youtube' => $child->media_time_balance_youtube,
