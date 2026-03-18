@@ -50,12 +50,11 @@ class DemoSeeder extends Seeder
             ]
         );
 
-        $kind2 = Child::firstOrCreate(
+        Child::firstOrCreate(
             ['name' => 'Jonas', 'parent_id' => $parent->id],
             [
-                'pin'           => '5678',
-                'language_pair' => LanguagePair::DE_FR,
-                'is_active'     => true,
+                'pin'       => '5678',
+                'is_active' => true,
             ]
         );
 
@@ -66,50 +65,40 @@ class DemoSeeder extends Seeder
         );
 
         // Tags für Englisch-Fach
-        $enTags = collect(['Tiere', 'Essen', 'Farben', 'Schule', 'Familie', 'Zahlen'])
+        $enTags = collect(['Nature', 'Animals', 'Camping'])
             ->map(fn ($name) => Tag::firstOrCreate(
                 ['name' => $name, 'vocabulary_list_id' => $fachEn->id],
                 ['parent_id' => $parent->id]
             ));
 
-        $enTiere   = $enTags->firstWhere('name', 'Tiere');
-        $enEssen   = $enTags->firstWhere('name', 'Essen');
-        $enFarben  = $enTags->firstWhere('name', 'Farben');
-        $enSchule  = $enTags->firstWhere('name', 'Schule');
-        $enFamilie = $enTags->firstWhere('name', 'Familie');
-        $enZahlen  = $enTags->firstWhere('name', 'Zahlen');
+        $enNature  = $enTags->firstWhere('name', 'Nature');
+        $enAnimals = $enTags->firstWhere('name', 'Animals');
+        $enCamping = $enTags->firstWhere('name', 'Camping');
 
         // Vokabeln für Englisch-Fach
         $enVocabs = [
-            ['de' => 'der Hund',     'en' => 'dog',       'tags' => [$enTiere->id]],
-            ['de' => 'die Katze',    'en' => 'cat',        'tags' => [$enTiere->id]],
-            ['de' => 'der Vogel',    'en' => 'bird',       'tags' => [$enTiere->id]],
-            ['de' => 'das Pferd',    'en' => 'horse',      'tags' => [$enTiere->id]],
-            ['de' => 'der Fisch',    'en' => 'fish',       'tags' => [$enTiere->id]],
-            ['de' => 'der Apfel',    'en' => 'apple',      'tags' => [$enEssen->id]],
-            ['de' => 'das Brot',     'en' => 'bread',      'tags' => [$enEssen->id]],
-            ['de' => 'die Milch',    'en' => 'milk',       'tags' => [$enEssen->id]],
-            ['de' => 'das Wasser',   'en' => 'water',      'tags' => [$enEssen->id]],
-            ['de' => 'der Kuchen',   'en' => 'cake',       'tags' => [$enEssen->id]],
-            ['de' => 'rot',          'en' => 'red',        'tags' => [$enFarben->id]],
-            ['de' => 'blau',         'en' => 'blue',       'tags' => [$enFarben->id]],
-            ['de' => 'grün',         'en' => 'green',      'tags' => [$enFarben->id]],
-            ['de' => 'gelb',         'en' => 'yellow',     'tags' => [$enFarben->id]],
-            ['de' => 'schwarz',      'en' => 'black',      'tags' => [$enFarben->id]],
-            ['de' => 'das Buch',     'en' => 'book',       'tags' => [$enSchule->id]],
-            ['de' => 'der Stift',    'en' => 'pen',        'tags' => [$enSchule->id]],
-            ['de' => 'die Schule',   'en' => 'school',     'tags' => [$enSchule->id]],
-            ['de' => 'der Lehrer',   'en' => 'teacher',    'tags' => [$enSchule->id]],
-            ['de' => 'das Heft',     'en' => 'notebook',   'tags' => [$enSchule->id]],
-            ['de' => 'die Mutter',   'en' => 'mother',     'tags' => [$enFamilie->id]],
-            ['de' => 'der Vater',    'en' => 'father',     'tags' => [$enFamilie->id]],
-            ['de' => 'die Schwester','en' => 'sister',     'tags' => [$enFamilie->id]],
-            ['de' => 'der Bruder',   'en' => 'brother',    'tags' => [$enFamilie->id]],
-            ['de' => 'eins',         'en' => 'one',        'tags' => [$enZahlen->id]],
-            ['de' => 'zwei',         'en' => 'two',        'tags' => [$enZahlen->id]],
-            ['de' => 'drei',         'en' => 'three',      'tags' => [$enZahlen->id]],
-            ['de' => 'vier',         'en' => 'four',       'tags' => [$enZahlen->id]],
-            ['de' => 'fünf',         'en' => 'five',       'tags' => [$enZahlen->id]],
+            // Nature
+            ['de' => 'See',           'en' => 'lake',         'tags' => [$enNature->id]],
+            ['de' => 'Stein',         'en' => 'rock',         'tags' => [$enNature->id]],
+            ['de' => 'Meer',          'en' => 'sea',          'tags' => [$enNature->id]],
+            ['de' => 'Schnee',        'en' => 'snow',         'tags' => [$enNature->id]],
+            ['de' => 'Spur',          'en' => 'track',        'tags' => [$enNature->id]],
+            // Animals
+            ['de' => 'Biber',         'en' => 'beaver',       'tags' => [$enAnimals->id]],
+            ['de' => 'Büffel',        'en' => 'buffalo',      'tags' => [$enAnimals->id]],
+            ['de' => 'Ente',          'en' => 'duck',         'tags' => [$enAnimals->id]],
+            ['de' => 'Adler',         'en' => 'eagle',        'tags' => [$enAnimals->id]],
+            ['de' => 'Gans',          'en' => 'goose',        'tags' => [$enAnimals->id]],
+            ['de' => 'Elch',          'en' => 'moose',        'tags' => [$enAnimals->id]],
+            ['de' => 'Schaf',         'en' => 'sheep',        'tags' => [$enAnimals->id]],
+            // Camping
+            ['de' => 'Taschenmesser', 'en' => 'pocket knife', 'tags' => [$enCamping->id]],
+            ['de' => 'Rucksack',      'en' => 'rucksack',     'tags' => [$enCamping->id]],
+            ['de' => 'Schlafsack',    'en' => 'sleeping bag', 'tags' => [$enCamping->id]],
+            ['de' => 'Zelt',          'en' => 'tent',         'tags' => [$enCamping->id]],
+            ['de' => 'Tipi',          'en' => 'teepee',       'tags' => [$enCamping->id]],
+            ['de' => 'Taschenlampe',  'en' => 'torch',        'tags' => [$enCamping->id]],
+            ['de' => 'Wasserflasche', 'en' => 'water bottle', 'tags' => [$enCamping->id]],
         ];
 
         foreach ($enVocabs as $v) {
@@ -120,65 +109,14 @@ class DemoSeeder extends Seeder
             $vocab->tags()->syncWithoutDetaching($v['tags']);
         }
 
-        // === FACH: Französisch (DE_FR) ===
-        $fachFr = VocabularyList::firstOrCreate(
-            ['name' => 'Französisch Klasse 5', 'parent_id' => $parent->id],
-            ['language_pair' => LanguagePair::DE_FR->value]
-        );
-
-        // Tags für Französisch-Fach
-        $frTags = collect(['Tiere', 'Essen', 'Familie', 'Zahlen'])
-            ->map(fn ($name) => Tag::firstOrCreate(
-                ['name' => $name, 'vocabulary_list_id' => $fachFr->id],
-                ['parent_id' => $parent->id]
-            ));
-
-        $frTiere   = $frTags->firstWhere('name', 'Tiere');
-        $frEssen   = $frTags->firstWhere('name', 'Essen');
-        $frFamilie = $frTags->firstWhere('name', 'Familie');
-        $frZahlen  = $frTags->firstWhere('name', 'Zahlen');
-
-        // Vokabeln für Französisch-Fach
-        $frVocabs = [
-            ['de' => 'der Hund',     'fr' => 'le chien',      'tags' => [$frTiere->id]],
-            ['de' => 'die Katze',    'fr' => 'le chat',       'tags' => [$frTiere->id]],
-            ['de' => 'der Vogel',    'fr' => 'l\'oiseau',     'tags' => [$frTiere->id]],
-            ['de' => 'das Pferd',    'fr' => 'le cheval',     'tags' => [$frTiere->id]],
-            ['de' => 'der Fisch',    'fr' => 'le poisson',    'tags' => [$frTiere->id]],
-            ['de' => 'der Apfel',    'fr' => 'la pomme',      'tags' => [$frEssen->id]],
-            ['de' => 'das Brot',     'fr' => 'le pain',       'tags' => [$frEssen->id]],
-            ['de' => 'das Wasser',   'fr' => 'l\'eau',        'tags' => [$frEssen->id]],
-            ['de' => 'der Kuchen',   'fr' => 'le gâteau',     'tags' => [$frEssen->id]],
-            ['de' => 'die Mutter',   'fr' => 'la mère',       'tags' => [$frFamilie->id]],
-            ['de' => 'der Vater',    'fr' => 'le père',       'tags' => [$frFamilie->id]],
-            ['de' => 'die Schwester','fr' => 'la sœur',       'tags' => [$frFamilie->id]],
-            ['de' => 'der Bruder',   'fr' => 'le frère',      'tags' => [$frFamilie->id]],
-            ['de' => 'eins',         'fr' => 'un',            'tags' => [$frZahlen->id]],
-            ['de' => 'zwei',         'fr' => 'deux',          'tags' => [$frZahlen->id]],
-            ['de' => 'drei',         'fr' => 'trois',         'tags' => [$frZahlen->id]],
-        ];
-
-        foreach ($frVocabs as $v) {
-            $vocab = Vocabulary::firstOrCreate(
-                ['word_de' => $v['de'], 'parent_id' => $parent->id, 'vocabulary_list_id' => $fachFr->id],
-                ['word_fr' => $v['fr'], 'word_en' => null]
-            );
-            $vocab->tags()->syncWithoutDetaching($v['tags']);
-        }
-
         // === Kind-Cluster-Zuweisung ===
-        // Lena → Tiere + Schule + Farben im Englisch-Fach
-        $kind1->tags()->syncWithoutDetaching([$enTiere->id, $enSchule->id, $enFarben->id]);
+        // Tobias → alle drei Cluster im Englisch-Fach
+        $kind1->tags()->syncWithoutDetaching([$enNature->id, $enAnimals->id, $enCamping->id]);
 
-        // Max → Tiere + Familie im Französisch-Fach
-        $kind2->tags()->syncWithoutDetaching([$frTiere->id, $frFamilie->id]);
-
-        // Flash cards via neue tag-basierte Logik
+        // Flash cards via tag-basierte Logik
         $leitner->createMissingCards($kind1->id, $parent->id);
-        $leitner->createMissingCards($kind2->id, $parent->id);
 
         $this->command->info('Demo data seeded: jr@einsle.com');
-        $this->command->info('Children: Tobias (PIN: 1234, Cluster: Tiere+Schule+Farben in Englisch)');
-        $this->command->info('         Jonas (PIN: 5678, Cluster: Tiere+Familie in Französisch)');
+        $this->command->info('Children: Tobias (PIN: 1234, Cluster: Nature+Animals+Camping in Englisch)');
     }
 }

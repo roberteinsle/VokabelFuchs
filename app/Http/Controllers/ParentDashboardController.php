@@ -29,8 +29,7 @@ class ParentDashboardController extends Controller
             return [
                 'id'             => $child->id,
                 'name'           => $child->name,
-                'username'       => $child->username,
-                'language_pair'  => $child->language_pair->label(),
+                'language_pair'  => $child->language_pair?->label(),
                 'drawer_counts'  => $drawerCounts,
                 'total_cards'    => array_sum($drawerCounts),
                 'mastered_cards' => $drawerCounts[5] ?? 0,

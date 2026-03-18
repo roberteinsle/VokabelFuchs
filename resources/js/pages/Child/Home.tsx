@@ -1,26 +1,44 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import ChildLayout from '@/components/layout/ChildLayout';
 import LeitnerDrawerVisual from '@/components/leitner/LeitnerDrawerVisual';
-import { Button } from '@/components/ui/button';
 import { LinkButton } from '@/components/ui/link-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DrawerStats } from '@/types/models';
-import { Play } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
+
+interface ModeMeta {
+    label: string;
+    due: number;
+}
 
 interface Props {
     child: { id: number; name: string; username: string; language_pair: string };
-    drawer_stats: DrawerStats;
+    mode_stats: Record<string, DrawerStats>;
+    mode_meta: Record<string, ModeMeta>;
     due_count: number;
     balance_gaming: number;
     balance_youtube: number;
 }
 
-export default function ChildHome({ child, drawer_stats, due_count, balance_gaming, balance_youtube }: Props) {
+export default function ChildHome({ child, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube }: Props) {
+    const handleReset = (mode: string, label: string) => {
+        if (!confirm(`Alle Karten im Modus „${label}" wirklich auf Fach 1 zurücksetzen?`)) return;
+        router.post(route('child.flash-cards.reset'), { mode });
+    };
+
+    const startDrawer = (mode: string, drawer: number) => {
+        router.post(route('child.training.start'), {
+            training_mode: mode,
+            drawers: [drawer],
+            direction: 'forward',
+        });
+    };
+
     return (
         <ChildLayout>
             <Head title={`Hallo ${child.name}!`} />
 
-            <div className="space-y-6">
+            <div className="space-y-5">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Hallo, {child.name}! 👋</h1>
                     <p className="text-gray-500 mt-1">Bereit zum Lernen?</p>
@@ -52,9 +70,9 @@ export default function ChildHome({ child, drawer_stats, due_count, balance_gami
                             <p className="text-4xl font-bold">{due_count} Karten</p>
                             <p className="text-blue-100 text-sm">die auf dich warten!</p>
                             <LinkButton size="lg" variant="secondary" className="w-full" href={route('child.training.index')}>
-                                    <Play className="w-5 h-5 mr-2" />
-                                    Jetzt lernen
-                                </LinkButton>
+                                <Play className="w-5 h-5 mr-2" />
+                                Jetzt lernen
+                            </LinkButton>
                         </CardContent>
                     </Card>
                 ) : (
@@ -67,12 +85,46 @@ export default function ChildHome({ child, drawer_stats, due_count, balance_gami
                     </Card>
                 )}
 
-                {/* Leitner visual */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <LeitnerDrawerVisual drawerStats={drawer_stats} dueCount={due_count} />
-                    </CardContent>
-                </Card>
+                {/* Leitner boxes per training mode */}
+                {Object.keys(mode_stats).length > 0 && (
+                    <div className="space-y-3">
+                        <h2 className="text-base font-semibold text-gray-700">Deine Karteikästen</h2>
+                        {Object.entries(mode_stats).map(([mode, stats]) => {
+                            const meta = mode_meta[mode];
+                            const totalCards = Object.values(stats).reduce((s, n) => s + n, 0);
+                            if (totalCards === 0) return null;
+                            return (
+                                <Card key={mode}>
+                                    <CardContent className="pt-4 pb-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-semibold text-gray-800">{meta?.label ?? mode}</h3>
+                                                {meta?.due > 0 && (
+                                                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                                                        {meta.due} fällig
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleReset(mode, meta?.label ?? mode)}
+                                                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                                                title="Auf Fach 1 zurücksetzen"
+                                            >
+                                                <RotateCcw className="w-3.5 h-3.5" />
+                                                Reset
+                                            </button>
+                                        </div>
+                                        <LeitnerDrawerVisual
+                                            drawerStats={stats}
+                                            onDrawerClick={(drawer) => startDrawer(mode, drawer)}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </ChildLayout>
     );

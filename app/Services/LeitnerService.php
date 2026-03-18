@@ -50,18 +50,33 @@ class LeitnerService
 
     /**
      * Get all due cards for a child (next_review_date <= today).
+     * If $forceAll is true, return all cards regardless of review date.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getDueCards(int $childId, ?array $tagIds = null)
+    /**
+     * Get due cards for a child.
+     * $drawers: if set, return all cards in those drawers (ignores next_review_date).
+     * If null/empty, return only cards due today.
+     */
+    public function getDueCards(int $childId, ?array $tagIds = null, ?string $mode = null, ?array $drawers = null)
     {
         $limit = config('leitner.session_card_limit', 20);
 
         $query = FlashCard::with(['vocabulary.tags'])
             ->where('child_id', $childId)
-            ->where('next_review_date', '<=', Carbon::today())
             ->orderBy('drawer')
             ->orderBy('next_review_date');
+
+        if (! empty($drawers)) {
+            $query->whereIn('drawer', $drawers);
+        } else {
+            $query->where('next_review_date', '<=', Carbon::today());
+        }
+
+        if ($mode) {
+            $query->where('training_mode', $mode);
+        }
 
         if ($tagIds) {
             $query->whereHas('vocabulary.tags', fn ($q) => $q->whereIn('tags.id', $tagIds));
@@ -71,12 +86,16 @@ class LeitnerService
     }
 
     /**
-     * Get drawer statistics (count per drawer) for a child.
+     * Get drawer statistics (count per drawer) for a child, optionally filtered by mode.
      */
-    public function getDrawerStats(int $childId): array
+    public function getDrawerStats(int $childId, ?string $mode = null): array
     {
-        $counts = FlashCard::where('child_id', $childId)
-            ->selectRaw('drawer, COUNT(*) as count')
+        $query = FlashCard::where('child_id', $childId);
+        if ($mode) {
+            $query->where('training_mode', $mode);
+        }
+
+        $counts = $query->selectRaw('drawer, COUNT(*) as count')
             ->groupBy('drawer')
             ->pluck('count', 'drawer')
             ->toArray();
@@ -88,6 +107,33 @@ class LeitnerService
         }
 
         return $stats;
+    }
+
+    /**
+     * Get drawer statistics for all training modes for a child.
+     */
+    public function getDrawerStatsByMode(int $childId): array
+    {
+        $modes = ['multiple_choice', 'free_text', 'dictation'];
+        $result = [];
+        foreach ($modes as $mode) {
+            $result[$mode] = $this->getDrawerStats($childId, $mode);
+        }
+        return $result;
+    }
+
+    /**
+     * Reset all flash cards of a given mode back to drawer 1.
+     */
+    public function resetToDrawer1(int $childId, string $mode): int
+    {
+        return FlashCard::where('child_id', $childId)
+            ->where('training_mode', $mode)
+            ->update([
+                'drawer'           => 1,
+                'next_review_date' => Carbon::today(),
+                'streak_count'     => 0,
+            ]);
     }
 
     /**
@@ -105,24 +151,36 @@ class LeitnerService
             return 0;
         }
 
-        $existingIds = FlashCard::where('child_id', $childId)->pluck('vocabulary_id')->toArray();
+        $modes = ['multiple_choice', 'free_text', 'dictation'];
+
+        // Existing (vocabulary_id, training_mode) combos for this child
+        $existing = FlashCard::where('child_id', $childId)
+            ->select('vocabulary_id', 'training_mode')
+            ->get()
+            ->map(fn ($r) => $r->vocabulary_id . '_' . $r->training_mode)
+            ->toArray();
 
         $vocabularies = \App\Models\Vocabulary::where('parent_id', $parentId)
             ->where('is_active', true)
-            ->whereNotIn('id', $existingIds)
             ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $assignedTagIds))
             ->get();
 
         $created = 0;
         foreach ($vocabularies as $vocab) {
-            FlashCard::create([
-                'vocabulary_id'    => $vocab->id,
-                'child_id'         => $childId,
-                'drawer'           => 1,
-                'next_review_date' => Carbon::today(),
-                'streak_count'     => 0,
-            ]);
-            $created++;
+            foreach ($modes as $mode) {
+                if (in_array($vocab->id . '_' . $mode, $existing)) {
+                    continue;
+                }
+                FlashCard::create([
+                    'vocabulary_id'    => $vocab->id,
+                    'child_id'         => $childId,
+                    'training_mode'    => $mode,
+                    'drawer'           => 1,
+                    'next_review_date' => Carbon::today(),
+                    'streak_count'     => 0,
+                ]);
+                $created++;
+            }
         }
 
         return $created;

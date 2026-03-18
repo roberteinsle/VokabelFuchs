@@ -10,7 +10,10 @@ use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ChildTagController;
+use App\Http\Controllers\VocabularyExportController;
+use App\Http\Controllers\VocabularyImportController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\VocabularyController;
@@ -43,10 +46,24 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     // Vocabulary management (create/edit/update/destroy — scoped to a list via list_id)
     Route::resource('vocabulary', VocabularyController::class)
         ->except(['index']);
+    Route::post('/vocabulary/bulk-destroy', [VocabularyController::class, 'bulkDestroy'])
+        ->name('vocabulary.bulk-destroy');
+    Route::post('/vocabulary/bulk-assign-tag', [VocabularyController::class, 'bulkAssignTag'])
+        ->name('vocabulary.bulk-assign-tag');
+
+    // CSV Export / Import (nested under vocabulary-lists)
+    Route::get('/vocabulary-lists/{vocabularyList}/export', VocabularyExportController::class)
+        ->name('vocabulary-lists.export');
+    Route::get('/vocabulary-lists/{vocabularyList}/import', [VocabularyImportController::class, 'create'])
+        ->name('vocabulary-lists.import.create');
+    Route::post('/vocabulary-lists/{vocabularyList}/import', [VocabularyImportController::class, 'store'])
+        ->name('vocabulary-lists.import.store');
 
     // Tags (nested under vocabulary-lists)
     Route::post('/vocabulary-lists/{vocabularyList}/tags', [TagController::class, 'store'])
         ->name('vocabulary-lists.tags.store');
+    Route::patch('/vocabulary-lists/{vocabularyList}/tags/{tag}', [TagController::class, 'update'])
+        ->name('vocabulary-lists.tags.update');
     Route::delete('/vocabulary-lists/{vocabularyList}/tags/{tag}', [TagController::class, 'destroy'])
         ->name('vocabulary-lists.tags.destroy');
 
@@ -59,6 +76,10 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     // Media time rules
     Route::get('/media-time-rules', [MediaTimeRuleController::class, 'edit'])->name('media-time-rules.edit');
     Route::put('/media-time-rules', [MediaTimeRuleController::class, 'update'])->name('media-time-rules.update');
+
+    // Backup
+    Route::get('/profile/backup/export', [BackupController::class, 'export'])->name('profile.backup.export');
+    Route::post('/profile/backup/import', [BackupController::class, 'import'])->name('profile.backup.import');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -77,6 +98,8 @@ Route::middleware(['auth', 'verified', 'child.auth'])->prefix('child')->name('ch
     Route::post('/training/start', [TrainingSessionController::class, 'start'])->name('training.start');
     Route::get('/training/{session}', [TrainingSessionController::class, 'show'])->name('training.show');
     Route::post('/training/{session}/answer', [TrainingSessionController::class, 'answer'])->name('training.answer');
+    Route::post('/training/{session}/skip', [TrainingSessionController::class, 'skip'])->name('training.skip');
+    Route::post('/flash-cards/reset', [TrainingSessionController::class, 'resetMode'])->name('flash-cards.reset');
     Route::post('/training/{session}/finish', [TrainingSessionController::class, 'finish'])->name('training.finish');
     Route::get('/training/{session}/summary', [TrainingSessionController::class, 'summary'])->name('training.summary');
 

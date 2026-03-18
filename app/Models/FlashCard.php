@@ -11,6 +11,7 @@ class FlashCard extends Model
     protected $fillable = [
         'vocabulary_id',
         'child_id',
+        'training_mode',
         'drawer',
         'next_review_date',
         'streak_count',

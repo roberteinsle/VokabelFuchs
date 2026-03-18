@@ -1,58 +1,136 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState, useRef, useEffect } from 'react';
 import ChildLayout from '@/components/layout/ChildLayout';
 import TtsButton from '@/components/common/TtsButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import type { TrainingQuestion, TrainingSession } from '@/types/models';
-import { isAcceptable } from '@/lib/levenshtein';
-import { CheckCircle, XCircle } from 'lucide-react';
+
+interface LastResult {
+    correct: boolean;
+    correct_answer: string;
+    given_answer: string;
+}
 
 interface Props {
     session: TrainingSession;
     question: TrainingQuestion;
     cards_remaining: number;
     cards_total: number;
+    last_result?: LastResult | null;
 }
 
-export default function TrainingSession({ session, question, cards_remaining, cards_total }: Props) {
+export default function TrainingSession({ session, question, cards_remaining, cards_total, last_result }: Props) {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [textAnswer, setTextAnswer] = useState('');
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [isCorrectPreview, setIsCorrectPreview] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [feedback, setFeedback] = useState<LastResult | null>(null);
 
-    const { data, setData, post, processing } = useForm({
-        flash_card_id: question.flash_card_id,
-        answer: '',
-        mode: question.mode,
-        target_lang: question.target_lang,
-    });
+    const prevCardIdRef = useRef<number | null>(null);
+
+    // When a new question arrives after answering, show the result of the previous answer
+    useEffect(() => {
+        if (prevCardIdRef.current !== null && prevCardIdRef.current !== question.flash_card_id && last_result) {
+            setFeedback(last_result);
+        }
+        prevCardIdRef.current = question.flash_card_id;
+    }, [question.flash_card_id]);
 
     const progress = cards_total > 0
         ? ((cards_total - cards_remaining) / cards_total) * 100
         : 0;
 
-    const handleMultipleChoiceSelect = (option: string) => {
-        setSelectedAnswer(option);
-        setData('answer', option);
-    };
-
-    const handleFreeTextSubmit = () => {
-        setData('answer', textAnswer);
-        submitAnswer(textAnswer);
-    };
-
-    const submitAnswer = (answer: string) => {
-        post(route('child.training.answer', session.id), {
+    const submitAnswer = (submittedAnswer: string) => {
+        if (processing) return;
+        setProcessing(true);
+        router.post(route('child.training.answer', session.id), {
+            flash_card_id: question.flash_card_id,
+            answer: submittedAnswer,
+            mode: question.mode,
+            target_lang: question.target_lang,
+        }, {
             preserveScroll: true,
             onSuccess: () => {
                 setSelectedAnswer(null);
                 setTextAnswer('');
-                setShowFeedback(false);
+                setProcessing(false);
             },
+            onError: () => setProcessing(false),
         });
     };
+
+    const handleMultipleChoiceSelect = (option: string) => {
+        setSelectedAnswer(option);
+    };
+
+    const handleFreeTextSubmit = () => {
+        if (textAnswer.trim()) {
+            submitAnswer(textAnswer);
+        }
+    };
+
+    // Feedback overlay (shown after each answer)
+    if (feedback) {
+        return (
+            <ChildLayout>
+                <Head title="Training" />
+                <div className="space-y-6">
+                    {/* Progress bar */}
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-gray-500">
+                            <span>✓ {session.cards_correct} · ✗ {session.cards_wrong}</span>
+                            <span>{cards_remaining} übrig</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                    </div>
+
+                    {/* Feedback card */}
+                    <div className={`rounded-2xl border-2 shadow-sm p-8 text-center space-y-4 ${
+                        feedback.correct
+                            ? 'bg-green-50 border-green-300'
+                            : 'bg-red-50 border-red-300'
+                    }`}>
+                        <div className="text-7xl">
+                            {feedback.correct ? '🎉' : '😕'}
+                        </div>
+                        <h2 className={`text-2xl font-bold ${feedback.correct ? 'text-green-700' : 'text-red-700'}`}>
+                            {feedback.correct ? 'Super gemacht!' : 'Leider falsch'}
+                        </h2>
+                        {!feedback.correct && (
+                            <div className="space-y-2">
+                                {feedback.given_answer && (
+                                    <p className="text-sm text-red-500">
+                                        Deine Antwort: <span className="font-semibold">{feedback.given_answer}</span>
+                                    </p>
+                                )}
+                                <div className="bg-white rounded-xl border border-green-200 px-4 py-3">
+                                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Richtige Antwort</p>
+                                    <p className="text-xl font-bold text-green-700">{feedback.correct_answer}</p>
+                                </div>
+                            </div>
+                        )}
+                        {feedback.correct && (
+                            <p className="text-green-600 font-medium">{feedback.correct_answer}</p>
+                        )}
+                    </div>
+
+                    <Button
+                        type="button"
+                        size="lg"
+                        className={`w-full h-14 text-base font-semibold ${
+                            feedback.correct
+                                ? 'bg-green-500 hover:bg-green-600'
+                                : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
+                        onClick={() => setFeedback(null)}
+                    >
+                        Weiter →
+                    </Button>
+                </div>
+            </ChildLayout>
+        );
+    }
 
     return (
         <ChildLayout>
@@ -117,7 +195,7 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                                 placeholder="Übersetzung eingeben..."
                                 value={textAnswer}
                                 onChange={(e) => setTextAnswer(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && textAnswer.trim() && handleFreeTextSubmit()}
+                                onKeyDown={(e) => e.key === 'Enter' && !processing && textAnswer.trim() && handleFreeTextSubmit()}
                                 className="text-center text-lg h-12"
                                 autoFocus
                             />
@@ -126,37 +204,51 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                 </div>
 
                 {/* Submit button */}
-                <form onSubmit={(e) => { e.preventDefault(); }}>
-                    {question.mode === 'multiple_choice' ? (
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="w-full h-12"
-                            disabled={!selectedAnswer || processing}
-                            onClick={() => submitAnswer(selectedAnswer!)}
-                        >
-                            Antworten →
-                        </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="w-full h-12"
-                            disabled={!textAnswer.trim() || processing}
-                            onClick={handleFreeTextSubmit}
-                        >
-                            Prüfen →
-                        </Button>
-                    )}
-                </form>
+                {question.mode === 'multiple_choice' ? (
+                    <Button
+                        type="button"
+                        size="lg"
+                        className="w-full h-12"
+                        disabled={!selectedAnswer || processing}
+                        onClick={() => submitAnswer(selectedAnswer!)}
+                    >
+                        Antworten →
+                    </Button>
+                ) : (
+                    <Button
+                        type="button"
+                        size="lg"
+                        className="w-full h-12"
+                        disabled={!textAnswer.trim() || processing}
+                        onClick={handleFreeTextSubmit}
+                    >
+                        Prüfen →
+                    </Button>
+                )}
 
-                {/* Finish session */}
-                <div className="text-center">
-                    <form onSubmit={(e) => { e.preventDefault(); post(route('child.training.finish', session.id)); }}>
-                        <button type="submit" className="text-xs text-gray-400 hover:text-gray-600 underline">
-                            Training beenden
-                        </button>
-                    </form>
+                {/* Skip + Finish */}
+                <div className="flex items-center justify-center gap-6">
+                    <button
+                        type="button"
+                        disabled={processing}
+                        className="text-sm text-gray-400 hover:text-gray-600 underline disabled:opacity-50"
+                        onClick={() => {
+                            if (processing) return;
+                            setProcessing(true);
+                            router.post(route('child.training.skip', session.id), {
+                                flash_card_id: question.flash_card_id,
+                            }, { onFinish: () => setProcessing(false) });
+                        }}
+                    >
+                        Überspringen
+                    </button>
+                    <button
+                        type="button"
+                        className="text-xs text-gray-400 hover:text-gray-600 underline"
+                        onClick={() => router.post(route('child.training.finish', session.id))}
+                    >
+                        Training beenden
+                    </button>
                 </div>
             </div>
         </ChildLayout>

@@ -31,25 +31,30 @@ class TrainingSessionController extends Controller
 
         // Get clusters the child is assigned to
         $assignedTags = $child->tags()->with('vocabularyList:id,name,language_pair')->get();
+        $modes = array_column(\App\Enums\TrainingMode::cases(), 'value');
 
-        $clusters = $assignedTags->map(function ($tag) use ($child) {
-            $dueCount = $this->leitner->getDueCards($child->id, [$tag->id])->count();
+        $clusters = $assignedTags->map(function ($tag) use ($child, $modes) {
+            $dueByMode = collect($modes)->mapWithKeys(fn ($m) =>
+                [$m => $this->leitner->getDueCards($child->id, [$tag->id], $m)->count()]
+            )->toArray();
             return [
                 'tag_id'        => $tag->id,
                 'tag_name'      => $tag->name,
                 'fach_name'     => $tag->vocabularyList?->name,
                 'language_pair' => $tag->vocabularyList?->language_pair?->value,
-                'due_count'     => $dueCount,
+                'due_by_mode'   => $dueByMode,
             ];
         });
 
-        $totalDue = $this->leitner->getDueCards($child->id)->count();
+        $totalDueByMode = collect($modes)->mapWithKeys(fn ($m) =>
+            [$m => $this->leitner->getDueCards($child->id, null, $m)->count()]
+        )->toArray();
 
         return Inertia::render('Training/Index', [
-            'child'          => $child,
-            'due_count'      => $totalDue,
-            'clusters'       => $clusters,
-            'training_modes' => collect(TrainingMode::cases())->map(fn ($m) => [
+            'child'            => $child,
+            'due_by_mode'      => $totalDueByMode,
+            'clusters'         => $clusters,
+            'training_modes'   => collect(TrainingMode::cases())->map(fn ($m) => [
                 'value' => $m->value,
                 'label' => $m->label(),
             ]),
@@ -61,6 +66,9 @@ class TrainingSessionController extends Controller
         $request->validate([
             'training_mode' => ['required', 'string', 'in:' . implode(',', array_column(TrainingMode::cases(), 'value'))],
             'tag_id'        => ['nullable', 'integer', 'exists:tags,id'],
+            'direction'     => ['nullable', 'string', 'in:forward,backward'],
+            'drawers'       => ['nullable', 'array'],
+            'drawers.*'     => ['integer', 'between:1,5'],
         ]);
 
         $child = Child::findOrFail($request->session()->get('child_id'));
@@ -81,8 +89,12 @@ class TrainingSessionController extends Controller
             'language_pair' => $languagePair,
             'training_mode' => $request->training_mode,
             'tag_id'        => $tagId,
+            'direction'     => $request->input('direction', 'forward'),
             'started_at'    => now(),
         ]);
+
+        $drawers = array_filter(array_map('intval', $request->input('drawers', [])));
+        $request->session()->put("training_drawers_{$session->id}", array_values($drawers));
 
         return redirect()->route('child.training.show', $session->id);
     }
@@ -100,23 +112,37 @@ class TrainingSessionController extends Controller
         }
 
         $tagFilter = $session->tag_id ? [$session->tag_id] : null;
-        $dueCards = $this->leitner->getDueCards($childId, $tagFilter);
+        $mode      = $session->training_mode->value;
+        $drawers   = $request->session()->get("training_drawers_{$session->id}", []);
+        $dueCards  = $this->leitner->getDueCards($childId, $tagFilter, $mode, ! empty($drawers) ? $drawers : null);
 
-        // Exclude cards already answered in this session
+        // Exclude cards already answered or skipped in this session
         $answeredCardIds = $session->results()->pluck('flash_card_id')->toArray();
-        $remaining = $dueCards->whereNotIn('id', $answeredCardIds)->values();
+        $skippedCardIds  = $request->session()->get("training_skipped_{$session->id}", []);
+        $remaining = $dueCards->whereNotIn('id', array_merge($answeredCardIds, $skippedCardIds))->values();
 
         if ($remaining->isEmpty()) {
-            return redirect()->route('child.training.finish', $session->id)
-                ->withMethod('POST');
+            if (! $session->isFinished()) {
+                $session->update(['ended_at' => now()]);
+                $credited = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
+                $session->update([
+                    'media_time_earned_gaming'  => $credited['gaming'],
+                    'media_time_earned_youtube' => $credited['youtube'],
+                ]);
+            }
+            return redirect()->route('child.training.summary', $session->id);
         }
 
         $currentCard = $remaining->first();
-        $langPair    = $session->language_pair;
-        $question    = $this->training->buildQuestion(
+        $langPair  = $session->language_pair;
+        $backward  = ($session->direction ?? 'forward') === 'backward';
+        $sourceLang = $backward ? $langPair->targetLang() : $langPair->sourceLang();
+        $targetLang = $backward ? $langPair->sourceLang() : $langPair->targetLang();
+
+        $question = $this->training->buildQuestion(
             $currentCard,
-            $langPair->sourceLang(),
-            $langPair->targetLang(),
+            $sourceLang,
+            $targetLang,
             $session->training_mode->value,
         );
 
@@ -125,6 +151,11 @@ class TrainingSessionController extends Controller
             'question'        => $question,
             'cards_remaining' => $remaining->count(),
             'cards_total'     => $dueCards->count(),
+            'last_result'     => session()->has('last_answer_correct') ? [
+                'correct'        => session('last_answer_correct'),
+                'correct_answer' => session('last_correct_answer'),
+                'given_answer'   => session('last_answer_given'),
+            ] : null,
         ]);
     }
 
@@ -140,7 +171,7 @@ class TrainingSessionController extends Controller
             'flash_card_id' => ['required', 'integer'],
             'answer'        => ['nullable', 'string', 'max:255'],
             'mode'          => ['required', 'string'],
-            'target_lang'   => ['required', 'string', 'in:en,fr'],
+            'target_lang'   => ['required', 'string', 'in:de,en,fr'],
         ]);
 
         $card = \App\Models\FlashCard::where('id', $request->flash_card_id)
@@ -178,6 +209,32 @@ class TrainingSessionController extends Controller
             'last_correct_answer'  => $correctAnswer,
             'last_answer_given'    => $userAnswer,
         ]);
+    }
+
+    public function resetMode(Request $request): RedirectResponse
+    {
+        $childId = $request->session()->get('child_id');
+        $request->validate(['mode' => ['required', 'string', 'in:multiple_choice,free_text,dictation']]);
+        $this->leitner->resetToDrawer1($childId, $request->mode);
+        return back()->with('success', 'Karteikasten zurückgesetzt.');
+    }
+
+    public function skip(Request $request, TrainingSession $session): RedirectResponse
+    {
+        $childId = $request->session()->get('child_id');
+
+        if ($session->child_id !== $childId || $session->isFinished()) {
+            abort(403);
+        }
+
+        $request->validate(['flash_card_id' => ['required', 'integer']]);
+
+        $key     = "training_skipped_{$session->id}";
+        $skipped = $request->session()->get($key, []);
+        $skipped[] = (int) $request->flash_card_id;
+        $request->session()->put($key, array_unique($skipped));
+
+        return redirect()->route('child.training.show', $session->id);
     }
 
     public function finish(Request $request, TrainingSession $session): RedirectResponse

@@ -27,6 +27,21 @@ class TagController extends Controller
         return back()->with('success', 'Cluster wurde angelegt.');
     }
 
+    public function update(Request $request, VocabularyList $vocabularyList, Tag $tag): RedirectResponse
+    {
+        if ($vocabularyList->parent_id !== $request->user()->id || $tag->vocabulary_list_id !== $vocabularyList->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+        ]);
+
+        $tag->update($validated);
+
+        return back()->with('success', 'Cluster umbenannt.');
+    }
+
     public function destroy(Request $request, VocabularyList $vocabularyList, Tag $tag): RedirectResponse
     {
         if ($vocabularyList->parent_id !== $request->user()->id) {

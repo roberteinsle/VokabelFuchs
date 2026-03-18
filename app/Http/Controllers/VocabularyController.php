@@ -125,4 +125,61 @@ class VocabularyController extends Controller
         return redirect()->route('parent.vocabulary-lists.index')
             ->with('success', 'Vokabel wurde gelöscht.');
     }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:vocabularies,id'],
+        ]);
+
+        $vocabs = Vocabulary::whereIn('id', $validated['ids'])
+            ->where('parent_id', $request->user()->id)
+            ->get();
+
+        $listId = $vocabs->first()?->vocabulary_list_id;
+
+        foreach ($vocabs as $vocab) {
+            $vocab->delete();
+        }
+
+        if ($listId) {
+            return redirect()->route('parent.vocabulary-lists.show', $listId)
+                ->with('success', $vocabs->count() . ' Vokabeln gelöscht.');
+        }
+
+        return redirect()->route('parent.vocabulary-lists.index')
+            ->with('success', $vocabs->count() . ' Vokabeln gelöscht.');
+    }
+
+    public function bulkAssignTag(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['integer', 'exists:vocabularies,id'],
+            'tag_id' => ['required', 'integer', 'exists:tags,id'],
+        ]);
+
+        $vocabs = Vocabulary::whereIn('id', $validated['ids'])
+            ->where('parent_id', $request->user()->id)
+            ->get();
+
+        $listId = $vocabs->first()?->vocabulary_list_id;
+
+        foreach ($vocabs as $vocab) {
+            $vocab->tags()->syncWithoutDetaching([$validated['tag_id']]);
+        }
+
+        foreach ($request->user()->children as $child) {
+            $this->leitner->createMissingCards($child->id, $request->user()->id);
+        }
+
+        if ($listId) {
+            return redirect()->route('parent.vocabulary-lists.show', $listId)
+                ->with('success', 'Cluster wurde zugewiesen.');
+        }
+
+        return redirect()->route('parent.vocabulary-lists.index')
+            ->with('success', 'Cluster wurde zugewiesen.');
+    }
 }

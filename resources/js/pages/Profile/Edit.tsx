@@ -3,6 +3,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdatePinForm from './Partials/UpdatePinForm';
+import BackupForm from './Partials/BackupForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
 
 interface Props {
@@ -29,6 +30,10 @@ export default function Edit({ mustVerifyEmail, status, hasPin }: Props) {
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                     <UpdatePasswordForm />
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                    <BackupForm status={status} />
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">

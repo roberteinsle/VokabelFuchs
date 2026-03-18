@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { LinkButton } from '@/components/ui/link-button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ChevronLeft, ChevronDown, ChevronUp, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { ChevronLeft, ChevronDown, ChevronUp, Download, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react';
 import { Tag, Vocabulary } from '@/types/models';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface ChildRef {
     id: number;
@@ -39,6 +40,8 @@ const TARGET_LANG: Record<string, 'en' | 'fr'> = { de_en: 'en', de_fr: 'fr' };
 
 function ClusterRow({ tag, list, allChildren }: { tag: TagWithChildren; list: VocabularyListData; allChildren: ChildRef[] }) {
     const [expanded, setExpanded] = useState(false);
+    const [renaming, setRenaming] = useState(false);
+    const [newName, setNewName] = useState(tag.name);
 
     const assignedIds = tag.children.map(c => c.id);
     const unassignedChildren = allChildren.filter(c => !assignedIds.includes(c.id));
@@ -57,26 +60,55 @@ function ClusterRow({ tag, list, allChildren }: { tag: TagWithChildren; list: Vo
         }
     };
 
+    const handleRename = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newName.trim() || newName.trim() === tag.name) { setRenaming(false); return; }
+        router.patch(
+            route('parent.vocabulary-lists.tags.update', { vocabularyList: list.id, tag: tag.id }),
+            { name: newName.trim() },
+            { onSuccess: () => setRenaming(false) }
+        );
+    };
+
     return (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
-                <button
-                    type="button"
-                    onClick={() => setExpanded(!expanded)}
-                    className="flex items-center gap-2 flex-1 text-left"
-                >
-                    {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                    <span className="font-medium text-gray-800">{tag.name}</span>
-                    <span className="text-xs text-gray-400">{tag.vocabularies_count} Vokabeln</span>
-                </button>
+                {renaming ? (
+                    <form onSubmit={handleRename} className="flex items-center gap-2 flex-1 mr-2" onClick={e => e.stopPropagation()}>
+                        <input
+                            autoFocus
+                            value={newName}
+                            onChange={e => setNewName(e.target.value)}
+                            className="flex-1 text-sm border border-blue-400 rounded px-2 py-1 outline-none"
+                            onKeyDown={e => e.key === 'Escape' && setRenaming(false)}
+                        />
+                        <button type="submit" className="text-xs text-blue-600 font-medium hover:text-blue-800">OK</button>
+                        <button type="button" onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600">Abbrechen</button>
+                    </form>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setExpanded(!expanded)}
+                        className="flex items-center gap-2 flex-1 text-left"
+                    >
+                        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                        <span className="font-medium text-gray-800">{tag.name}</span>
+                        <span className="text-xs text-gray-400">{tag.vocabularies_count} Vokabeln</span>
+                    </button>
+                )}
                 <div className="flex items-center gap-2">
-                    {tag.children.map(child => (
+                    {!renaming && tag.children.map(child => (
                         <Badge key={child.id} variant="secondary" className="text-xs gap-1">
                             {child.name}
                             <button type="button" onClick={() => handleDetach(child.id)} className="ml-1 text-gray-400 hover:text-red-500">×</button>
                         </Badge>
                     ))}
-                    <button type="button" onClick={handleDeleteTag} className="text-gray-300 hover:text-red-500 transition-colors ml-1">
+                    {!renaming && (
+                        <button type="button" onClick={() => { setNewName(tag.name); setRenaming(true); }} className="text-gray-300 hover:text-blue-500 transition-colors">
+                            <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <button type="button" onClick={handleDeleteTag} className="text-gray-300 hover:text-red-500 transition-colors">
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>
                 </div>
@@ -115,6 +147,10 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
     const [editingName, setEditingName] = useState(false);
     const [showAddCluster, setShowAddCluster] = useState(false);
     const [newClusterName, setNewClusterName] = useState('');
+    const [activeFilter, setActiveFilter] = useState<number | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [bulkTagId, setBulkTagId] = useState<string>('');
 
     const { data: nameData, setData: setNameData, put: putName, processing: nameProcessing } = useForm({
         name: list.name,
@@ -124,15 +160,63 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
     const targetLang = TARGET_LANG[list.language_pair] ?? 'en';
     const targetLabel = LANG_LABELS[list.language_pair] ?? list.language_pair;
 
-    // Derived: children in this Fach (assigned to at least one cluster)
     const childrenInFach = allChildren.filter(c =>
         tags.some(t => t.children.some(tc => tc.id === c.id))
     );
+
+    const filteredVocabs = useMemo(() => {
+        let result = activeFilter === null
+            ? vocabularies
+            : vocabularies.filter(v => v.tags.some(t => t.id === activeFilter));
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            result = result.filter(v =>
+                v.word_de.toLowerCase().includes(q) ||
+                (v[`word_${targetLang}` as keyof Vocabulary] as string | null)?.toLowerCase().includes(q)
+            );
+        }
+        return result;
+    }, [vocabularies, activeFilter, searchQuery, targetLang]);
+
+    const allSelected = filteredVocabs.length > 0 && filteredVocabs.every(v => selectedIds.has(v.id));
+
+    const handleFilterChange = (tagId: number | null) => {
+        setActiveFilter(tagId);
+        setSelectedIds(new Set());
+    };
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredVocabs.map(v => v.id)));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        const next = new Set(selectedIds);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        setSelectedIds(next);
+    };
 
     const handleDeleteVocab = (id: number) => {
         if (confirm('Vokabel wirklich löschen?')) {
             router.delete(route('parent.vocabulary.destroy', id));
         }
+    };
+
+    const handleBulkDelete = () => {
+        if (!confirm(`${selectedIds.size} Vokabeln wirklich löschen?`)) return;
+        router.post(route('parent.vocabulary.bulk-destroy'), { ids: Array.from(selectedIds) }, {
+            onSuccess: () => setSelectedIds(new Set()),
+        });
+    };
+
+    const handleBulkAssignTag = () => {
+        if (!bulkTagId) return;
+        router.post(route('parent.vocabulary.bulk-assign-tag'), { ids: Array.from(selectedIds), tag_id: parseInt(bulkTagId) }, {
+            onSuccess: () => { setSelectedIds(new Set()); setBulkTagId(''); },
+        });
     };
 
     const handleNameSubmit = (e: React.FormEvent) => {
@@ -184,19 +268,121 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
                             </div>
                         )}
                     </div>
-                    <LinkButton href={route('parent.vocabulary.create', { list_id: list.id })}>
-                        <Plus className="w-4 h-4 mr-1" /> Neue Vokabel
-                    </LinkButton>
+                    <div className="flex gap-2">
+                        <a
+                            href={route('parent.vocabulary-lists.export', list.id)}
+                            className={buttonVariants({ variant: 'outline' })}
+                        >
+                            <Download className="w-4 h-4" /> CSV Export
+                        </a>
+                        <LinkButton variant="outline" href={route('parent.vocabulary-lists.import.create', list.id)}>
+                            <Upload className="w-4 h-4 mr-1" /> CSV Import
+                        </LinkButton>
+                        <LinkButton href={route('parent.vocabulary.create', { list_id: list.id })}>
+                            <Plus className="w-4 h-4 mr-1" /> Neue Vokabel
+                        </LinkButton>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left: Vocabulary table */}
                     <div className="lg:col-span-2 space-y-4">
-                        <h2 className="text-lg font-semibold text-gray-800">Vokabeln ({vocabularies.length})</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                Vokabeln ({filteredVocabs.length}{activeFilter !== null && ` / ${vocabularies.length}`})
+                            </h2>
+                        </div>
+
+                        {/* Search */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => { setSearchQuery(e.target.value); setSelectedIds(new Set()); }}
+                                placeholder="Deutsch oder Englisch suchen…"
+                                className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 bg-white"
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Cluster filter pills */}
+                        {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleFilterChange(null)}
+                                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                        activeFilter === null
+                                            ? 'bg-gray-800 text-white'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    Alle ({vocabularies.length})
+                                </button>
+                                {tags.map(tag => (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => handleFilterChange(tag.id)}
+                                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                            activeFilter === tag.id
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                        }`}
+                                    >
+                                        {tag.name} ({tag.vocabularies_count})
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Bulk action bar */}
+                        {selectedIds.size > 0 && (
+                            <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                                <span className="text-sm font-medium text-blue-800">{selectedIds.size} ausgewählt</span>
+                                <div className="flex items-center gap-2 ml-auto">
+                                    <select
+                                        value={bulkTagId}
+                                        onChange={(e) => setBulkTagId(e.target.value)}
+                                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                                    >
+                                        <option value="">Cluster zuweisen…</option>
+                                        {tags.map(tag => (
+                                            <option key={tag.id} value={tag.id}>{tag.name}</option>
+                                        ))}
+                                    </select>
+                                    <Button size="sm" variant="outline" onClick={handleBulkAssignTag} disabled={!bulkTagId}>
+                                        Zuweisen
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={handleBulkDelete} className="text-red-600 border-red-200 hover:bg-red-50">
+                                        <Trash2 className="w-3.5 h-3.5 mr-1" /> Löschen
+                                    </Button>
+                                    <button type="button" onClick={() => setSelectedIds(new Set())} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                onChange={toggleSelectAll}
+                                                className="rounded"
+                                            />
+                                        </TableHead>
                                         <TableHead>Deutsch</TableHead>
                                         <TableHead>{targetLabel}</TableHead>
                                         <TableHead>Cluster</TableHead>
@@ -204,18 +390,31 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {vocabularies.length === 0 ? (
+                                    {filteredVocabs.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-gray-500 py-10">
-                                                Noch keine Vokabeln.{' '}
-                                                <Link href={route('parent.vocabulary.create', { list_id: list.id })} className="text-blue-600 hover:underline">
-                                                    Erste Vokabel anlegen
-                                                </Link>
+                                            <TableCell colSpan={5} className="text-center text-gray-500 py-10">
+                                                {searchQuery.trim() ? `Keine Vokabeln für „${searchQuery}" gefunden.` : activeFilter !== null ? 'Keine Vokabeln in diesem Cluster.' : (
+                                                    <>
+                                                        Noch keine Vokabeln.{' '}
+                                                        <Link href={route('parent.vocabulary.create', { list_id: list.id })} className="text-blue-600 hover:underline">
+                                                            Erste Vokabel anlegen
+                                                        </Link>
+                                                    </>
+                                                )}
                                             </TableCell>
+
                                         </TableRow>
                                     ) : (
-                                        vocabularies.map((vocab) => (
-                                            <TableRow key={vocab.id}>
+                                        filteredVocabs.map((vocab) => (
+                                            <TableRow key={vocab.id} className={selectedIds.has(vocab.id) ? 'bg-blue-50' : undefined}>
+                                                <TableCell>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedIds.has(vocab.id)}
+                                                        onChange={() => toggleSelect(vocab.id)}
+                                                        className="rounded"
+                                                    />
+                                                </TableCell>
                                                 <TableCell className="font-medium">
                                                     <div className="flex items-center gap-1">
                                                         {vocab.word_de}
@@ -233,7 +432,14 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-1">
                                                         {vocab.tags.map((tag) => (
-                                                            <Badge key={tag.id} variant="secondary" className="text-xs">{tag.name}</Badge>
+                                                            <button
+                                                                key={tag.id}
+                                                                type="button"
+                                                                onClick={() => handleFilterChange(tag.id)}
+                                                                className="text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-600 rounded-full px-2 py-0.5 transition-colors"
+                                                            >
+                                                                {tag.name}
+                                                            </button>
                                                         ))}
                                                     </div>
                                                 </TableCell>

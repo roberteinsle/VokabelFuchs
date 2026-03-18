@@ -13,7 +13,7 @@ enum TrainingMode: string
         return match($this) {
             self::MULTIPLE_CHOICE => 'Auswählen',
             self::FREE_TEXT       => 'Schreiben',
-            self::DICTATION       => 'Diktat',
+            self::DICTATION       => 'Hören & Schreiben',
         };
     }
 }

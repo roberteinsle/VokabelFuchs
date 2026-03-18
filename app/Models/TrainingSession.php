@@ -15,6 +15,7 @@ class TrainingSession extends Model
         'language_pair',
         'training_mode',
         'tag_id',
+        'direction',
         'started_at',
         'ended_at',
         'cards_correct',
