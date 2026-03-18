@@ -20,7 +20,8 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
+            'status'          => session('status'),
+            'hasPin'          => $request->user()->hasPin(),
         ]);
     }
 
@@ -43,6 +44,25 @@ class ProfileController extends Controller
     /**
      * Delete the user's account.
      */
+    public function updatePin(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'pin'              => ['required', 'string', 'size:4', 'regex:/^\d{4}$/', 'confirmed'],
+            'pin_confirmation' => ['required'],
+        ]);
+
+        $request->user()->update(['pin' => $request->pin]);
+
+        return back()->with('status', 'pin-updated');
+    }
+
+    public function removePin(Request $request): RedirectResponse
+    {
+        $request->user()->update(['pin' => null]);
+
+        return back()->with('status', 'pin-removed');
+    }
+
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([

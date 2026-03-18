@@ -1,32 +1,33 @@
 <?php
 
-use App\Http\Controllers\Auth\ChildPinController;
 use App\Http\Controllers\ChildController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\FlashCardController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MediaTimeController;
 use App\Http\Controllers\MediaTimeRuleController;
 use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\VocabularyController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-// Redirect root to login or dashboard
-Route::get('/', function () {
-    return redirect()->route('login');
+// === LANDING PAGE ===
+Route::get('/', [LandingController::class, 'index'])->name('home');
+
+// === PROFILE SELECTION (after master login) ===
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profiles', [ProfilesController::class, 'index'])->name('profiles.index');
+    Route::get('/profiles/{type}/{id}/pin', [ProfilesController::class, 'showPin'])->name('profiles.pin');
+    Route::post('/profiles/unlock', [ProfilesController::class, 'unlock'])->name('profiles.unlock');
+    Route::post('/profiles/lock', [ProfilesController::class, 'lock'])->name('profiles.lock');
 });
 
-// === CHILD PIN AUTH ===
-Route::get('/child-login', [ChildPinController::class, 'show'])->name('child.login');
-Route::post('/child-login', [ChildPinController::class, 'authenticate'])->name('child.login.post');
-Route::post('/child-logout', [ChildPinController::class, 'logout'])->name('child.logout');
-
 // === PARENT ROUTES ===
-Route::middleware(['auth', 'verified'])->prefix('parent')->name('parent.')->group(function () {
+Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('parent.')->group(function () {
     Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
 
     // Children management
@@ -47,10 +48,12 @@ Route::middleware(['auth', 'verified'])->prefix('parent')->name('parent.')->grou
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/pin', [ProfileController::class, 'updatePin'])->name('profile.pin.update');
+    Route::post('/profile/pin/remove', [ProfileController::class, 'removePin'])->name('profile.pin.remove');
 });
 
 // === CHILD ROUTES ===
-Route::middleware(['child.auth'])->prefix('child')->name('child.')->group(function () {
+Route::middleware(['auth', 'verified', 'child.auth'])->prefix('child')->name('child.')->group(function () {
     Route::get('/home', [ChildDashboardController::class, 'index'])->name('home');
 
     // Training

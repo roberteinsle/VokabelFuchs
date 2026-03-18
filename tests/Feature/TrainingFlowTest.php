@@ -21,7 +21,7 @@ class TrainingFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parent = User::factory()->create();
+        $this->parent = User::factory()->create(['pin' => null]);
         $this->child = Child::factory()->create([
             'parent_id'     => $this->parent->id,
             'pin'           => '1234',
@@ -31,7 +31,8 @@ class TrainingFlowTest extends TestCase
 
     private function actingAsChild(): static
     {
-        return $this->withSession(['child_id' => $this->child->id]);
+        return $this->actingAs($this->parent)
+            ->withSession(['child_id' => $this->child->id]);
     }
 
     private function createDueVocabWithCard(): FlashCard
@@ -54,7 +55,6 @@ class TrainingFlowTest extends TestCase
 
     public function test_can_start_training_session_with_due_cards(): void
     {
-        // Need at least 4 vocabs (for MC options)
         for ($i = 0; $i < 5; $i++) {
             $this->createDueVocabWithCard();
         }

@@ -41,7 +41,15 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200">
+                <div className="p-4 border-t border-gray-200 space-y-1">
+                    <Link
+                        href={route('profiles.lock')}
+                        method="post"
+                        as="button"
+                        className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                    >
+                        Profil wechseln
+                    </Link>
                     <Link
                         href={route('logout')}
                         method="post"

@@ -14,6 +14,18 @@ class EnsureIsParent
             return redirect()->route('login');
         }
 
+        $user = $request->user();
+
+        // If parent has a PIN, they must have unlocked their profile
+        if ($user->hasPin() && ! $request->session()->get('parent_profile_unlocked')) {
+            return redirect()->route('profiles.index');
+        }
+
+        // If parent has no PIN, auto-unlock
+        if (! $user->hasPin() && ! $request->session()->get('parent_profile_unlocked')) {
+            $request->session()->put('parent_profile_unlocked', true);
+        }
+
         return $next($request);
     }
 }

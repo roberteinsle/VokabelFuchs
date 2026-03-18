@@ -35,12 +35,12 @@ export default function ChildLayout({ children }: PropsWithChildren) {
                         ))}
                     </nav>
                     <Link
-                        href={route('child.logout')}
+                        href={route('profiles.lock')}
                         method="post"
                         as="button"
                         className="text-xs text-gray-500 hover:text-gray-800"
                     >
-                        Abmelden
+                        Profil wechseln
                     </Link>
                 </div>
             </header>
