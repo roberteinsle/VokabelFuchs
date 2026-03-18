@@ -91,16 +91,26 @@ class LeitnerService
     }
 
     /**
-     * Create flash cards for a child for all of their parent's active vocabularies.
+     * Create flash cards for a child based on their assigned tags/clusters.
+     * Only creates cards for vocabularies that have at least one tag assigned to the child.
      */
     public function createMissingCards(int $childId, int $parentId): int
     {
-        $child = \App\Models\Child::find($childId);
+        $assignedTagIds = \App\Models\Child::find($childId)
+            ->tags()
+            ->pluck('tags.id')
+            ->toArray();
+
+        if (empty($assignedTagIds)) {
+            return 0;
+        }
+
         $existingIds = FlashCard::where('child_id', $childId)->pluck('vocabulary_id')->toArray();
 
         $vocabularies = \App\Models\Vocabulary::where('parent_id', $parentId)
             ->where('is_active', true)
             ->whereNotIn('id', $existingIds)
+            ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $assignedTagIds))
             ->get();
 
         $created = 0;

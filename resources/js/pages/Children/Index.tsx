@@ -45,7 +45,6 @@ export default function ChildrenIndex({ children }: Props) {
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
                                             <span className="font-semibold text-gray-900">{child.name}</span>
-                                            <Badge variant="secondary">@{child.username}</Badge>
                                             {!child.is_active && <Badge variant="destructive">Inaktiv</Badge>}
                                         </div>
                                         <p className="text-sm text-gray-500">{child.language_pair}</p>

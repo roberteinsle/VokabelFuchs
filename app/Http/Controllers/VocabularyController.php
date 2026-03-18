@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vocabulary;
+use App\Models\VocabularyList;
 use App\Services\LeitnerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,36 +14,19 @@ class VocabularyController extends Controller
 {
     public function __construct(private LeitnerService $leitner) {}
 
-    public function index(Request $request): Response
-    {
-        $query = $request->user()->vocabularies()->with('tags');
-
-        if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
-            $query->where(function ($q) use ($search) {
-                $q->where('word_de', 'ilike', $search)
-                  ->orWhere('word_en', 'ilike', $search)
-                  ->orWhere('word_fr', 'ilike', $search);
-            });
-        }
-
-        if ($request->filled('tag')) {
-            $query->whereHas('tags', fn ($q) => $q->where('tags.id', $request->tag));
-        }
-
-        $vocabularies = $query->orderBy('word_de')->paginate(25)->withQueryString();
-        $tags = $request->user()->tags()->orderBy('name')->get();
-
-        return Inertia::render('Vocabulary/Index', [
-            'vocabularies' => $vocabularies,
-            'tags'         => $tags,
-            'filters'      => $request->only(['search', 'tag']),
-        ]);
-    }
-
     public function create(Request $request): Response
     {
+        $listId = $request->query('list_id');
+        $list = null;
+
+        if ($listId) {
+            $list = VocabularyList::where('id', $listId)
+                ->where('parent_id', $request->user()->id)
+                ->firstOrFail();
+        }
+
         return Inertia::render('Vocabulary/Create', [
+            'list' => $list,
             'tags' => $request->user()->tags()->orderBy('name')->get(),
         ]);
     }
@@ -50,14 +34,15 @@ class VocabularyController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'word_de'     => ['required', 'string', 'max:255'],
-            'word_en'     => ['nullable', 'string', 'max:255'],
-            'word_fr'     => ['nullable', 'string', 'max:255'],
-            'sentence_de' => ['nullable', 'string', 'max:500'],
-            'sentence_en' => ['nullable', 'string', 'max:500'],
-            'sentence_fr' => ['nullable', 'string', 'max:500'],
-            'tag_ids'     => ['nullable', 'array'],
-            'tag_ids.*'   => ['integer', 'exists:tags,id'],
+            'vocabulary_list_id' => ['nullable', 'integer', 'exists:vocabulary_lists,id'],
+            'word_de'            => ['required', 'string', 'max:255'],
+            'word_en'            => ['nullable', 'string', 'max:255'],
+            'word_fr'            => ['nullable', 'string', 'max:255'],
+            'sentence_de'        => ['nullable', 'string', 'max:500'],
+            'sentence_en'        => ['nullable', 'string', 'max:500'],
+            'sentence_fr'        => ['nullable', 'string', 'max:500'],
+            'tag_ids'            => ['nullable', 'array'],
+            'tag_ids.*'          => ['integer', 'exists:tags,id'],
         ]);
 
         $vocabulary = $request->user()->vocabularies()->create($validated);
@@ -66,12 +51,16 @@ class VocabularyController extends Controller
             $vocabulary->tags()->sync($validated['tag_ids']);
         }
 
-        // Auto-create flash cards for all children of this parent
         foreach ($request->user()->children as $child) {
             $this->leitner->createMissingCards($child->id, $request->user()->id);
         }
 
-        return redirect()->route('parent.vocabulary.index')
+        if ($validated['vocabulary_list_id'] ?? null) {
+            return redirect()->route('parent.vocabulary-lists.show', $validated['vocabulary_list_id'])
+                ->with('success', 'Vokabel wurde angelegt.');
+        }
+
+        return redirect()->route('parent.vocabulary-lists.index')
             ->with('success', 'Vokabel wurde angelegt.');
     }
 
@@ -85,6 +74,7 @@ class VocabularyController extends Controller
 
         return Inertia::render('Vocabulary/Edit', [
             'vocabulary' => $vocabulary,
+            'list'       => $vocabulary->vocabularyList,
             'tags'       => $request->user()->tags()->orderBy('name')->get(),
         ]);
     }
@@ -109,7 +99,12 @@ class VocabularyController extends Controller
         $vocabulary->update($validated);
         $vocabulary->tags()->sync($validated['tag_ids'] ?? []);
 
-        return redirect()->route('parent.vocabulary.index')
+        if ($vocabulary->vocabulary_list_id) {
+            return redirect()->route('parent.vocabulary-lists.show', $vocabulary->vocabulary_list_id)
+                ->with('success', 'Vokabel wurde aktualisiert.');
+        }
+
+        return redirect()->route('parent.vocabulary-lists.index')
             ->with('success', 'Vokabel wurde aktualisiert.');
     }
 
@@ -119,9 +114,15 @@ class VocabularyController extends Controller
             abort(403);
         }
 
+        $listId = $vocabulary->vocabulary_list_id;
         $vocabulary->delete();
 
-        return redirect()->route('parent.vocabulary.index')
+        if ($listId) {
+            return redirect()->route('parent.vocabulary-lists.show', $listId)
+                ->with('success', 'Vokabel wurde gelöscht.');
+        }
+
+        return redirect()->route('parent.vocabulary-lists.index')
             ->with('success', 'Vokabel wurde gelöscht.');
     }
 }

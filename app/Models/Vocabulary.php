@@ -14,6 +14,7 @@ class Vocabulary extends Model
 
     protected $fillable = [
         'parent_id',
+        'vocabulary_list_id',
         'word_de',
         'word_en',
         'word_fr',
@@ -34,6 +35,11 @@ class Vocabulary extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    public function vocabularyList(): BelongsTo
+    {
+        return $this->belongsTo(VocabularyList::class);
     }
 
     public function tags(): BelongsToMany

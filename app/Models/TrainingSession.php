@@ -14,6 +14,7 @@ class TrainingSession extends Model
         'child_id',
         'language_pair',
         'training_mode',
+        'tag_id',
         'started_at',
         'ended_at',
         'cards_correct',
@@ -39,6 +40,11 @@ class TrainingSession extends Model
     public function child(): BelongsTo
     {
         return $this->belongsTo(Child::class);
+    }
+
+    public function tag(): BelongsTo
+    {
+        return $this->belongsTo(Tag::class);
     }
 
     public function results(): HasMany

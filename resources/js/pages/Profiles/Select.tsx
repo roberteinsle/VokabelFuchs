@@ -57,9 +57,9 @@ export default function ProfileSelect({ parent, children }: Props) {
     return (
         <>
             <Head title="Profil wählen" />
-            <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6">
+            <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-6">
                 <div className="text-4xl mb-2">🦊</div>
-                <h1 className="text-white text-2xl font-semibold mb-12">Wer bist du?</h1>
+                <h1 className="text-gray-900 text-2xl font-semibold mb-12">Wer bist du?</h1>
 
                 <div className="flex flex-wrap justify-center gap-10 max-w-2xl">
                     {/* Parent profile */}
@@ -69,7 +69,7 @@ export default function ProfileSelect({ parent, children }: Props) {
                             avatar="👤"
                             onClick={() => selectProfile('parent', parent.id, parent.has_pin)}
                         />
-                        <span className="text-xs text-gray-500">Elternteil</span>
+                        <span className="text-xs text-gray-400">Elternteil</span>
                     </div>
 
                     {/* Children profiles */}
@@ -86,7 +86,7 @@ export default function ProfileSelect({ parent, children }: Props) {
                 <button
                     type="button"
                     onClick={handleLogout}
-                    className="mt-16 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                    className="mt-16 text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
                     Abmelden
                 </button>

@@ -35,14 +35,12 @@ class ChildController extends Controller
     {
         $validated = $request->validate([
             'name'          => ['required', 'string', 'max:100'],
-            'username'      => ['required', 'string', 'max:50', 'unique:children,username', 'alpha_dash'],
             'pin'           => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
             'language_pair' => ['required', 'string', 'in:' . implode(',', array_column(LanguagePair::cases(), 'value'))],
         ]);
 
         $request->user()->children()->create([
             'name'          => $validated['name'],
-            'username'      => $validated['username'],
             'pin'           => Hash::make($validated['pin']),
             'language_pair' => $validated['language_pair'],
         ]);
@@ -79,18 +77,14 @@ class ChildController extends Controller
     {
         $this->authorizeChild($request, $child);
 
-        $rules = [
+        $validated = $request->validate([
             'name'          => ['required', 'string', 'max:100'],
-            'username'      => ['required', 'string', 'max:50', 'alpha_dash', 'unique:children,username,' . $child->id],
             'language_pair' => ['required', 'string', 'in:' . implode(',', array_column(LanguagePair::cases(), 'value'))],
             'pin'           => ['nullable', 'string', 'size:4', 'regex:/^\d{4}$/'],
-        ];
-
-        $validated = $request->validate($rules);
+        ]);
 
         $data = [
             'name'          => $validated['name'],
-            'username'      => $validated['username'],
             'language_pair' => $validated['language_pair'],
         ];
 

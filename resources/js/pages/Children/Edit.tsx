@@ -14,7 +14,6 @@ interface Props {
 export default function ChildEdit({ child, language_pairs }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         name: child.name,
-        username: child.username,
         pin: '',
         language_pair: child.language_pair,
     });
@@ -34,12 +33,6 @@ export default function ChildEdit({ child, language_pairs }: Props) {
                                 <Label>Name *</Label>
                                 <Input value={data.name} onChange={(e) => setData('name', e.target.value)} required />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-                            </div>
-
-                            <div className="space-y-1">
-                                <Label>Benutzername *</Label>
-                                <Input value={data.username} onChange={(e) => setData('username', e.target.value.toLowerCase())} required />
-                                {errors.username && <p className="text-sm text-red-600">{errors.username}</p>}
                             </div>
 
                             <div className="space-y-1">

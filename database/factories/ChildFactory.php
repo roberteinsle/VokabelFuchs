@@ -13,7 +13,6 @@ class ChildFactory extends Factory
         return [
             'parent_id'                    => User::factory(),
             'name'                         => $this->faker->firstName(),
-            'username'                     => $this->faker->unique()->userName(),
             'pin'                          => '1234',
             'language_pair'                => LanguagePair::DE_EN,
             'is_active'                    => true,

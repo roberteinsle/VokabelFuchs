@@ -63,13 +63,13 @@ export default function ProfilePin({ type, id, profile_name }: Props) {
     return (
         <>
             <Head title={`PIN – ${profile_name}`} />
-            <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6">
+            <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-6">
                 <div className="flex flex-col items-center gap-4 mb-10">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-4xl">
                         {avatar}
                     </div>
-                    <h2 className="text-white text-xl font-semibold">{profile_name}</h2>
-                    <p className="text-gray-400 text-sm">PIN eingeben</p>
+                    <h2 className="text-gray-900 text-xl font-semibold">{profile_name}</h2>
+                    <p className="text-gray-500 text-sm">PIN eingeben</p>
                 </div>
 
                 <div className="flex gap-4 mb-6">
@@ -85,19 +85,19 @@ export default function ProfilePin({ type, id, profile_name }: Props) {
                             onKeyDown={e => handleKeyDown(i, e)}
                             autoFocus={i === 0}
                             disabled={processing}
-                            className="w-14 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-700 bg-gray-900 text-white focus:border-blue-500 focus:outline-none"
+                            className="w-14 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:outline-none shadow-sm"
                         />
                     ))}
                 </div>
 
                 {pinError && (
-                    <p className="text-red-400 text-sm mb-4">{pinError}</p>
+                    <p className="text-red-500 text-sm mb-4">{pinError}</p>
                 )}
 
                 <button
                     type="button"
                     onClick={handleBack}
-                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors mt-4"
+                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors mt-4"
                 >
                     ← Zurück
                 </button>

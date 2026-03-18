@@ -43,6 +43,11 @@ class User extends Authenticatable
         return $this->hasMany(Vocabulary::class, 'parent_id');
     }
 
+    public function vocabularyLists(): HasMany
+    {
+        return $this->hasMany(VocabularyList::class, 'parent_id');
+    }
+
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class, 'parent_id');

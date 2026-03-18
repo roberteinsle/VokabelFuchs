@@ -6,6 +6,7 @@ use App\Enums\LanguagePair;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Child extends Model
@@ -15,7 +16,6 @@ class Child extends Model
     protected $fillable = [
         'parent_id',
         'name',
-        'username',
         'pin',
         'language_pair',
         'media_time_balance_gaming',
@@ -39,6 +39,11 @@ class Child extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'child_tag');
     }
 
     public function flashCards(): HasMany

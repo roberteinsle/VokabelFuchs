@@ -29,12 +29,26 @@ class TrainingSessionController extends Controller
     {
         $child = Child::findOrFail($request->session()->get('child_id'));
 
-        $dueCount = $this->leitner->getDueCards($child->id)->count();
+        // Get clusters the child is assigned to
+        $assignedTags = $child->tags()->with('vocabularyList:id,name,language_pair')->get();
+
+        $clusters = $assignedTags->map(function ($tag) use ($child) {
+            $dueCount = $this->leitner->getDueCards($child->id, [$tag->id])->count();
+            return [
+                'tag_id'        => $tag->id,
+                'tag_name'      => $tag->name,
+                'fach_name'     => $tag->vocabularyList?->name,
+                'language_pair' => $tag->vocabularyList?->language_pair?->value,
+                'due_count'     => $dueCount,
+            ];
+        });
+
+        $totalDue = $this->leitner->getDueCards($child->id)->count();
 
         return Inertia::render('Training/Index', [
-            'child'        => $child,
-            'due_count'    => $dueCount,
-            'language_pair' => $child->language_pair,
+            'child'          => $child,
+            'due_count'      => $totalDue,
+            'clusters'       => $clusters,
             'training_modes' => collect(TrainingMode::cases())->map(fn ($m) => [
                 'value' => $m->value,
                 'label' => $m->label(),
@@ -46,14 +60,27 @@ class TrainingSessionController extends Controller
     {
         $request->validate([
             'training_mode' => ['required', 'string', 'in:' . implode(',', array_column(TrainingMode::cases(), 'value'))],
+            'tag_id'        => ['nullable', 'integer', 'exists:tags,id'],
         ]);
 
         $child = Child::findOrFail($request->session()->get('child_id'));
 
+        // Derive language_pair from selected cluster's Fach, or fall back to child's setting
+        $tagId = $request->input('tag_id');
+        if ($tagId) {
+            $tag = \App\Models\Tag::with('vocabularyList')->find($tagId);
+            $languagePair = $tag?->vocabularyList?->language_pair?->value
+                ?? $child->language_pair?->value
+                ?? \App\Enums\LanguagePair::DE_EN->value;
+        } else {
+            $languagePair = $child->language_pair?->value ?? \App\Enums\LanguagePair::DE_EN->value;
+        }
+
         $session = TrainingSession::create([
             'child_id'      => $child->id,
-            'language_pair' => $child->language_pair->value,
+            'language_pair' => $languagePair,
             'training_mode' => $request->training_mode,
+            'tag_id'        => $tagId,
             'started_at'    => now(),
         ]);
 
@@ -72,7 +99,8 @@ class TrainingSessionController extends Controller
             return redirect()->route('child.training.summary', $session->id);
         }
 
-        $dueCards = $this->leitner->getDueCards($childId);
+        $tagFilter = $session->tag_id ? [$session->tag_id] : null;
+        $dueCards = $this->leitner->getDueCards($childId, $tagFilter);
 
         // Exclude cards already answered in this session
         $answeredCardIds = $session->results()->pluck('flash_card_id')->toArray();

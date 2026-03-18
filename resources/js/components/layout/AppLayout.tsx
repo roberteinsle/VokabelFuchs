@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, ChartBar, Home, Settings, Tag, Users } from 'lucide-react';
+import { BookOpen, Home, Settings, User, Users } from 'lucide-react';
 import { PropsWithChildren } from 'react';
 
 export default function AppLayout({ children }: PropsWithChildren) {
@@ -8,9 +8,9 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const navItems = [
         { href: route('parent.dashboard'), label: 'Übersicht', icon: Home },
         { href: route('parent.children.index'), label: 'Kinder', icon: Users },
-        { href: route('parent.vocabulary.index'), label: 'Vokabeln', icon: BookOpen },
-        { href: route('parent.tags.index'), label: 'Tags', icon: Tag },
+        { href: route('parent.vocabulary-lists.index'), label: 'Vokabeln', icon: BookOpen },
         { href: route('parent.media-time-rules.edit'), label: 'Medienzeit', icon: Settings },
+        { href: route('parent.profile.edit'), label: 'Mein Profil', icon: User },
     ];
 
     return (

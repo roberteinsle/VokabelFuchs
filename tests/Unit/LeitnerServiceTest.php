@@ -2,8 +2,11 @@
 
 namespace Tests\Unit;
 
+use App\Enums\LanguagePair;
 use App\Models\FlashCard;
+use App\Models\Tag;
 use App\Models\Vocabulary;
+use App\Models\VocabularyList;
 use App\Models\Child;
 use App\Models\User;
 use App\Services\LeitnerService;
@@ -92,6 +95,75 @@ class LeitnerServiceTest extends TestCase
         $this->assertEquals(2, $stats[1]);
         $this->assertEquals(0, $stats[2]);
         $this->assertEquals(1, $stats[3]);
+    }
+
+    public function test_create_missing_cards_returns_zero_when_no_tags_assigned(): void
+    {
+        $parent = User::factory()->create();
+        $child = Child::factory()->create(['parent_id' => $parent->id]);
+
+        $created = $this->service->createMissingCards($child->id, $parent->id);
+
+        $this->assertEquals(0, $created);
+        $this->assertDatabaseCount('flash_cards', 0);
+    }
+
+    public function test_create_missing_cards_only_creates_cards_for_assigned_tags(): void
+    {
+        $parent = User::factory()->create();
+        $child = Child::factory()->create(['parent_id' => $parent->id]);
+
+        $list = VocabularyList::create([
+            'parent_id'     => $parent->id,
+            'name'          => 'Test Fach',
+            'language_pair' => LanguagePair::DE_EN->value,
+        ]);
+
+        $tagA = Tag::create(['name' => 'Tiere', 'parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+        $tagB = Tag::create(['name' => 'Essen', 'parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+
+        $vocabA = Vocabulary::factory()->create(['parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+        $vocabB = Vocabulary::factory()->create(['parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+        $vocabC = Vocabulary::factory()->create(['parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+
+        $vocabA->tags()->attach($tagA->id);
+        $vocabB->tags()->attach($tagB->id);
+        // vocabC has no tag → should not get a card
+
+        // Assign child only to tagA
+        $child->tags()->attach($tagA->id);
+
+        $created = $this->service->createMissingCards($child->id, $parent->id);
+
+        $this->assertEquals(1, $created);
+        $this->assertDatabaseHas('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabA->id]);
+        $this->assertDatabaseMissing('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabB->id]);
+        $this->assertDatabaseMissing('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabC->id]);
+    }
+
+    public function test_create_missing_cards_skips_existing_cards(): void
+    {
+        $parent = User::factory()->create();
+        $child = Child::factory()->create(['parent_id' => $parent->id]);
+
+        $list = VocabularyList::create([
+            'parent_id'     => $parent->id,
+            'name'          => 'Test Fach',
+            'language_pair' => LanguagePair::DE_EN->value,
+        ]);
+
+        $tag = Tag::create(['name' => 'Tiere', 'parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+        $vocab = Vocabulary::factory()->create(['parent_id' => $parent->id, 'vocabulary_list_id' => $list->id]);
+        $vocab->tags()->attach($tag->id);
+        $child->tags()->attach($tag->id);
+
+        // First call creates the card
+        $this->service->createMissingCards($child->id, $parent->id);
+        // Second call should not duplicate
+        $created = $this->service->createMissingCards($child->id, $parent->id);
+
+        $this->assertEquals(0, $created);
+        $this->assertDatabaseCount('flash_cards', 1);
     }
 
     private function makeCard(int $drawer = 1, ?int $childId = null, ?Carbon $nextReview = null): FlashCard

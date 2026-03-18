@@ -8,7 +8,6 @@ export interface Child {
     id: number;
     parent_id: number;
     name: string;
-    username: string;
     language_pair: string;
     media_time_balance_gaming: number;
     media_time_balance_youtube: number;
@@ -21,9 +20,19 @@ export interface Tag {
     vocabularies_count?: number;
 }
 
+export interface VocabularyList {
+    id: number;
+    parent_id: number;
+    name: string;
+    language_pair: string;
+    description: string | null;
+    vocabularies_count?: number;
+}
+
 export interface Vocabulary {
     id: number;
     parent_id: number;
+    vocabulary_list_id: number | null;
     word_de: string;
     word_en: string | null;
     word_fr: string | null;

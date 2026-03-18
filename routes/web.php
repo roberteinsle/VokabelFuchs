@@ -10,9 +10,11 @@ use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\ChildTagController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\VocabularyController;
+use App\Http\Controllers\VocabularyListController;
 use Illuminate\Support\Facades\Route;
 
 // === LANDING PAGE ===
@@ -34,11 +36,25 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     Route::resource('children', ChildController::class);
     Route::get('/children/{child}/statistics', [StatisticsController::class, 'child'])->name('children.statistics');
 
-    // Vocabulary management
-    Route::resource('vocabulary', VocabularyController::class);
+    // Vocabulary lists (Fächer)
+    Route::resource('vocabulary-lists', VocabularyListController::class)
+        ->except(['create', 'edit']);
 
-    // Tags
-    Route::resource('tags', TagController::class)->only(['index', 'store', 'destroy']);
+    // Vocabulary management (create/edit/update/destroy — scoped to a list via list_id)
+    Route::resource('vocabulary', VocabularyController::class)
+        ->except(['index']);
+
+    // Tags (nested under vocabulary-lists)
+    Route::post('/vocabulary-lists/{vocabularyList}/tags', [TagController::class, 'store'])
+        ->name('vocabulary-lists.tags.store');
+    Route::delete('/vocabulary-lists/{vocabularyList}/tags/{tag}', [TagController::class, 'destroy'])
+        ->name('vocabulary-lists.tags.destroy');
+
+    // Child-Tag assignment
+    Route::post('/vocabulary-lists/{vocabularyList}/tags/{tag}/children', [ChildTagController::class, 'store'])
+        ->name('vocabulary-lists.tags.children.store');
+    Route::delete('/vocabulary-lists/{vocabularyList}/tags/{tag}/children/{child}', [ChildTagController::class, 'destroy'])
+        ->name('vocabulary-lists.tags.children.destroy');
 
     // Media time rules
     Route::get('/media-time-rules', [MediaTimeRuleController::class, 'edit'])->name('media-time-rules.edit');

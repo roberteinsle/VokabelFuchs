@@ -12,7 +12,6 @@ interface Props {
 export default function ChildCreate({ language_pairs }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
-        username: '',
         pin: '',
         language_pair: 'de_en',
     });
@@ -38,18 +37,6 @@ export default function ChildCreate({ language_pairs }: Props) {
                                     required
                                 />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-                            </div>
-
-                            <div className="space-y-1">
-                                <Label htmlFor="username">Benutzername *</Label>
-                                <Input
-                                    id="username"
-                                    value={data.username}
-                                    onChange={(e) => setData('username', e.target.value.toLowerCase())}
-                                    placeholder="z.B. emma"
-                                    required
-                                />
-                                {errors.username && <p className="text-sm text-red-600">{errors.username}</p>}
                             </div>
 
                             <div className="space-y-1">

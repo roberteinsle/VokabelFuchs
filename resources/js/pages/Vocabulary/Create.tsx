@@ -7,12 +7,26 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tag } from '@/types/models';
 
+interface VocabularyListData {
+    id: number;
+    name: string;
+    language_pair: string;
+}
+
 interface Props {
+    list: VocabularyListData | null;
     tags: Tag[];
 }
 
-export default function VocabularyCreate({ tags }: Props) {
+const LANG_LABELS: Record<string, string> = { de_en: 'Englisch', de_fr: 'Französisch' };
+const TARGET_LANG: Record<string, 'en' | 'fr'> = { de_en: 'en', de_fr: 'fr' };
+
+export default function VocabularyCreate({ list, tags }: Props) {
+    const targetLang = list ? (TARGET_LANG[list.language_pair] ?? 'en') : null;
+    const targetLabel = list ? (LANG_LABELS[list.language_pair] ?? list.language_pair) : null;
+
     const { data, setData, post, processing, errors } = useForm({
+        vocabulary_list_id: list?.id ?? null as number | null,
         word_de: '',
         word_en: '',
         word_fr: '',
@@ -33,13 +47,16 @@ export default function VocabularyCreate({ tags }: Props) {
             <Head title="Vokabel anlegen" />
 
             <div className="max-w-2xl space-y-6">
-                <h1 className="text-2xl font-bold">Neue Vokabel</h1>
+                <div>
+                    <p className="text-sm text-gray-500">{list?.name}</p>
+                    <h1 className="text-2xl font-bold">Neue Vokabel</h1>
+                </div>
 
                 <form onSubmit={(e) => { e.preventDefault(); post(route('parent.vocabulary.store')); }} className="space-y-6">
                     <Card>
                         <CardHeader><CardTitle>Wörter</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
-                            {/* German */}
+                            {/* German — always shown */}
                             <div className="space-y-1">
                                 <Label>Deutsch *</Label>
                                 <div className="flex gap-2">
@@ -63,49 +80,74 @@ export default function VocabularyCreate({ tags }: Props) {
                                 />
                             </div>
 
-                            {/* English */}
-                            <div className="space-y-1">
-                                <Label>Englisch</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={data.word_en}
-                                        onChange={(e) => setData('word_en', e.target.value)}
-                                        placeholder="z.B. the dog"
-                                    />
-                                    {data.word_en && <TtsButton text={data.word_en} lang="en" />}
-                                </div>
-                            </div>
+                            {/* Target language field — only if list is set */}
+                            {targetLang === 'en' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <Label>{targetLabel} *</Label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={data.word_en}
+                                                onChange={(e) => setData('word_en', e.target.value)}
+                                                placeholder="z.B. the dog"
+                                            />
+                                            {data.word_en && <TtsButton text={data.word_en} lang="en" />}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Beispielsatz {targetLabel}</Label>
+                                        <Input
+                                            value={data.sentence_en}
+                                            onChange={(e) => setData('sentence_en', e.target.value)}
+                                            placeholder="z.B. The dog plays in the garden."
+                                        />
+                                    </div>
+                                </>
+                            )}
 
-                            <div className="space-y-1">
-                                <Label>Beispielsatz Englisch</Label>
-                                <Input
-                                    value={data.sentence_en}
-                                    onChange={(e) => setData('sentence_en', e.target.value)}
-                                    placeholder="z.B. The dog plays in the garden."
-                                />
-                            </div>
+                            {targetLang === 'fr' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <Label>{targetLabel} *</Label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={data.word_fr}
+                                                onChange={(e) => setData('word_fr', e.target.value)}
+                                                placeholder="z.B. le chien"
+                                            />
+                                            {data.word_fr && <TtsButton text={data.word_fr} lang="fr" />}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Beispielsatz {targetLabel}</Label>
+                                        <Input
+                                            value={data.sentence_fr}
+                                            onChange={(e) => setData('sentence_fr', e.target.value)}
+                                            placeholder="z.B. Le chien joue dans le jardin."
+                                        />
+                                    </div>
+                                </>
+                            )}
 
-                            {/* French */}
-                            <div className="space-y-1">
-                                <Label>Französisch</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={data.word_fr}
-                                        onChange={(e) => setData('word_fr', e.target.value)}
-                                        placeholder="z.B. le chien"
-                                    />
-                                    {data.word_fr && <TtsButton text={data.word_fr} lang="fr" />}
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <Label>Beispielsatz Französisch</Label>
-                                <Input
-                                    value={data.sentence_fr}
-                                    onChange={(e) => setData('sentence_fr', e.target.value)}
-                                    placeholder="z.B. Le chien joue dans le jardin."
-                                />
-                            </div>
+                            {/* No list — show all language fields */}
+                            {!list && (
+                                <>
+                                    <div className="space-y-1">
+                                        <Label>Englisch</Label>
+                                        <div className="flex gap-2">
+                                            <Input value={data.word_en} onChange={(e) => setData('word_en', e.target.value)} placeholder="z.B. the dog" />
+                                            {data.word_en && <TtsButton text={data.word_en} lang="en" />}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Französisch</Label>
+                                        <div className="flex gap-2">
+                                            <Input value={data.word_fr} onChange={(e) => setData('word_fr', e.target.value)} placeholder="z.B. le chien" />
+                                            {data.word_fr && <TtsButton text={data.word_fr} lang="fr" />}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
