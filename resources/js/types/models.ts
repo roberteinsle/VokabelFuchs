@@ -12,6 +12,7 @@ export interface Child {
     media_time_balance_gaming: number;
     media_time_balance_youtube: number;
     is_active: boolean;
+    tags_count?: number;
 }
 
 export interface Tag {
