@@ -47,7 +47,9 @@ export default function ChildrenIndex({ children }: Props) {
                                             <span className="font-semibold text-gray-900">{child.name}</span>
                                             {!child.is_active && <Badge variant="destructive">Inaktiv</Badge>}
                                         </div>
-                                        <p className="text-sm text-gray-500">{child.language_pair}</p>
+                                        {(child.tags_count ?? 0) > 0 && (
+                                            <p className="text-sm text-gray-500">{child.tags_count} Cluster zugewiesen</p>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <LinkButton variant="ghost" size="sm" href={route('parent.children.statistics', child.id)}>Statistiken</LinkButton>

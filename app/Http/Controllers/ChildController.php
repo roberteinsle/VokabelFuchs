@@ -14,7 +14,7 @@ class ChildController extends Controller
 {
     public function index(Request $request): Response
     {
-        $children = $request->user()->children()->orderBy('name')->get();
+        $children = $request->user()->children()->withCount('tags')->orderBy('name')->get();
 
         return Inertia::render('Children/Index', [
             'children' => $children,
