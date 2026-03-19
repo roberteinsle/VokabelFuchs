@@ -1,4 +1,4 @@
-# VokabelFuchs — V. 1.0.1
+# VokabelFuchs — V. 1.0.2
 
 Eine Vokabel-Lern-App für Kinder, gebaut mit dem Leitner-Karteikasten-System. Eltern verwalten Vokabeln und Fächer, Kinder lernen spielerisch und verdienen Medienzeit.
 
