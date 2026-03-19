@@ -87,7 +87,7 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
                     </Link>
                 )}
 
-                <p className="mt-4 text-xs text-gray-300">V. 1.1.0</p>
+                <p className="mt-4 text-xs text-gray-300">V. 1.1.1</p>
             </div>
         </>
     );

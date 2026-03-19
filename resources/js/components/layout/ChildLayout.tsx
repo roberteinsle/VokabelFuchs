@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart2, BookOpen, Clock, Home, Power, UserRound } from 'lucide-react';
+import { BarChart2, Clock, Home, Power, UserRound } from 'lucide-react';
 import { PropsWithChildren } from 'react';
 
 export default function ChildLayout({ children }: PropsWithChildren) {
@@ -7,7 +7,6 @@ export default function ChildLayout({ children }: PropsWithChildren) {
 
     const navItems = [
         { href: route('child.home'), label: 'Home', icon: Home },
-        { href: route('child.training.index'), label: 'Lernen', icon: BookOpen },
         { href: route('child.media-time.index'), label: 'Medienzeit', icon: Clock },
         { href: route('child.statistics'), label: 'Fortschritt', icon: BarChart2 },
     ];

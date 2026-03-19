@@ -38,8 +38,18 @@ class ChildDashboardController extends Controller
         $todayEarnedGaming = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::GAMING);
         $todayEarnedYoutube = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::YOUTUBE);
 
+        $languagePairs = $child->tags()
+            ->join('vocabulary_lists', 'tags.vocabulary_list_id', '=', 'vocabulary_lists.id')
+            ->distinct()
+            ->pluck('vocabulary_lists.language_pair')
+            ->filter()
+            ->values()
+            ->map(fn ($lp) => is_string($lp) ? $lp : $lp->value)
+            ->all();
+
         return Inertia::render('Child/Home', [
             'child' => $child->only('id', 'name', 'username', 'language_pair'),
+            'language_pairs' => $languagePairs,
             'mode_stats' => $modeStats,
             'mode_meta' => $modes,
             'due_count' => $dueCount,

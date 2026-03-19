@@ -89,7 +89,6 @@ Route::middleware(['auth', 'verified', 'child.auth'])->prefix('child')->name('ch
     Route::get('/home', [ChildDashboardController::class, 'index'])->name('home');
 
     // Training
-    Route::get('/training', [TrainingSessionController::class, 'index'])->name('training.index');
     Route::post('/training/start', [TrainingSessionController::class, 'start'])->name('training.start');
     Route::get('/training/{session}', [TrainingSessionController::class, 'show'])->name('training.show');
     Route::post('/training/{session}/answer', [TrainingSessionController::class, 'answer'])->name('training.answer');

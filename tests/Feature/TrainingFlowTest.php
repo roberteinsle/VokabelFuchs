@@ -49,13 +49,7 @@ class TrainingFlowTest extends TestCase
         ]);
     }
 
-    public function test_training_index_loads_for_child(): void
-    {
-        $response = $this->actingAsChild()->get(route('child.training.index'));
-        $response->assertStatus(200);
-    }
-
-    public function test_can_start_training_session_with_due_cards(): void
+public function test_can_start_training_session_with_due_cards(): void
     {
         for ($i = 0; $i < 5; $i++) {
             $this->createDueVocabWithCard();

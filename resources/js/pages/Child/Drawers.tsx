@@ -37,7 +37,7 @@ export default function ChildDrawers({ drawer_stats, due_count, intervals }: Pro
                 </div>
 
                 {due_count > 0 && (
-                    <LinkButton className="w-full" href={route('child.training.index')}>
+                    <LinkButton className="w-full" href={route('child.home')}>
                             {due_count} Karten lernen →
                         </LinkButton>
                 )}

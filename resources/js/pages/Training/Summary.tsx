@@ -71,7 +71,7 @@ export default function TrainingSummary({ session }: Props) {
 
                 <div className="flex gap-3">
                     <LinkButton variant="outline" className="flex-1" href={route('child.home')}>Zum Menü</LinkButton>
-                    <LinkButton className="flex-1" href={route('child.training.index')}>Nochmal lernen</LinkButton>
+                    <LinkButton className="flex-1" href={route('child.home')}>Nochmal lernen</LinkButton>
                 </div>
             </div>
         </ChildLayout>

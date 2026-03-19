@@ -1,10 +1,21 @@
 import { Head, router } from '@inertiajs/react';
 import ChildLayout from '@/components/layout/ChildLayout';
 import LeitnerDrawerVisual from '@/components/leitner/LeitnerDrawerVisual';
-import { LinkButton } from '@/components/ui/link-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DrawerStats } from '@/types/models';
-import { Play, RotateCcw } from 'lucide-react';
+import { RotateCcw, X } from 'lucide-react';
+import { useState } from 'react';
+
+const DIRECTIONS: Record<string, { forward: { label: string; from: string; to: string }; backward: { label: string; from: string; to: string } }> = {
+    de_en: {
+        forward:  { label: 'Ins Englische',    from: '🇩🇪', to: '🇬🇧' },
+        backward: { label: 'Ins Deutsche',      from: '🇬🇧', to: '🇩🇪' },
+    },
+    de_fr: {
+        forward:  { label: 'Ins Französische', from: '🇩🇪', to: '🇫🇷' },
+        backward: { label: 'Ins Deutsche',      from: '🇫🇷', to: '🇩🇪' },
+    },
+};
 
 interface ModeMeta {
     label: string;
@@ -13,6 +24,7 @@ interface ModeMeta {
 
 interface Props {
     child: { id: number; name: string; username: string; language_pair: string };
+    language_pairs: string[];
     mode_stats: Record<string, DrawerStats>;
     mode_meta: Record<string, ModeMeta>;
     due_count: number;
@@ -25,18 +37,29 @@ interface Props {
     current_streak: number;
 }
 
-export default function ChildHome({ child, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube, daily_cap_gaming, daily_cap_youtube, today_earned_gaming, today_earned_youtube, current_streak }: Props) {
+export default function ChildHome({ child, language_pairs, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube, daily_cap_gaming, daily_cap_youtube, today_earned_gaming, today_earned_youtube, current_streak }: Props) {
+    const [pendingDrawer, setPendingDrawer] = useState<{ mode: string; drawer: number } | null>(null);
+
+    const activeLangPair = language_pairs[0] ?? child.language_pair ?? 'de_en';
+    const directionOptions = DIRECTIONS[activeLangPair] ?? DIRECTIONS['de_en'];
+
     const handleReset = (mode: string, label: string) => {
         if (!confirm(`Alle Karten im Modus „${label}" wirklich auf Fach 1 zurücksetzen?`)) return;
         router.post(route('child.flash-cards.reset'), { mode });
     };
 
-    const startDrawer = (mode: string, drawer: number) => {
+    const handleDrawerClick = (mode: string, drawer: number) => {
+        setPendingDrawer({ mode, drawer });
+    };
+
+    const startWithDirection = (direction: string) => {
+        if (!pendingDrawer) return;
         router.post(route('child.training.start'), {
-            training_mode: mode,
-            drawers: [drawer],
-            direction: 'forward',
+            training_mode: pendingDrawer.mode,
+            drawers: [pendingDrawer.drawer],
+            direction,
         });
+        setPendingDrawer(null);
     };
 
     return (
@@ -93,20 +116,7 @@ export default function ChildHome({ child, mode_stats, mode_meta, due_count, bal
                     </CardContent>
                 </Card>
 
-                {/* Start training CTA */}
-                {due_count > 0 ? (
-                    <Card className="bg-blue-600 border-blue-700 text-white">
-                        <CardContent className="pt-6 text-center space-y-3">
-                            <p className="text-blue-100 text-sm">Du hast</p>
-                            <p className="text-4xl font-bold">{due_count} Karten</p>
-                            <p className="text-blue-100 text-sm">die auf dich warten!</p>
-                            <LinkButton size="lg" variant="secondary" className="w-full" href={route('child.training.index')}>
-                                <Play className="w-5 h-5 mr-2" />
-                                Jetzt lernen
-                            </LinkButton>
-                        </CardContent>
-                    </Card>
-                ) : (
+                {due_count === 0 && (
                     <Card className="bg-green-50 border-green-200">
                         <CardContent className="pt-6 text-center">
                             <div className="text-4xl mb-2">🎉</div>
@@ -148,7 +158,7 @@ export default function ChildHome({ child, mode_stats, mode_meta, due_count, bal
                                         </div>
                                         <LeitnerDrawerVisual
                                             drawerStats={stats}
-                                            onDrawerClick={(drawer) => startDrawer(mode, drawer)}
+                                            onDrawerClick={(drawer) => handleDrawerClick(mode, drawer)}
                                         />
                                     </CardContent>
                                 </Card>
@@ -157,6 +167,40 @@ export default function ChildHome({ child, mode_stats, mode_meta, due_count, bal
                     </div>
                 )}
             </div>
+
+            {/* Direction picker overlay */}
+            {pendingDrawer && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setPendingDrawer(null)}>
+                    <div className="absolute inset-0 bg-black/40" />
+                    <div
+                        className="relative w-full max-w-lg bg-white rounded-t-2xl px-5 pt-5 pb-8 space-y-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between">
+                            <p className="font-semibold text-gray-800">Fach {pendingDrawer.drawer} — Richtung wählen</p>
+                            <button type="button" onClick={() => setPendingDrawer(null)} className="p-1 text-gray-400 hover:text-gray-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {(['forward', 'backward'] as const).map((dir) => {
+                                const opt = directionOptions[dir];
+                                return (
+                                    <button
+                                        key={dir}
+                                        type="button"
+                                        onClick={() => startWithDirection(dir)}
+                                        className="flex flex-col items-center gap-1.5 py-4 px-3 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 transition-all"
+                                    >
+                                        <span className="text-2xl">{opt.from} → {opt.to}</span>
+                                        <span className="text-sm font-medium text-gray-700">{opt.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
         </ChildLayout>
     );
 }
