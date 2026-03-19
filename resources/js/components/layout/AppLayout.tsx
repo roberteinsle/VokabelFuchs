@@ -59,6 +59,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         </Link>
                     </div>
                 </nav>
+
+                <p className="px-6 pb-4 text-xs text-gray-300">V. 1.0.1</p>
             </aside>
 
             {/* Main content */}
