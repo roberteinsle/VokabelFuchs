@@ -20,7 +20,7 @@ class TagController extends Controller
         ]);
 
         $vocabularyList->tags()->firstOrCreate([
-            'name'      => $validated['name'],
+            'name' => $validated['name'],
             'parent_id' => $request->user()->id,
         ]);
 

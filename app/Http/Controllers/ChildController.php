@@ -34,14 +34,14 @@ class ChildController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'          => ['required', 'string', 'max:100'],
-            'pin'           => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
-            'language_pair' => ['required', 'string', 'in:' . implode(',', array_column(LanguagePair::cases(), 'value'))],
+            'name' => ['required', 'string', 'max:100'],
+            'pin' => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
+            'language_pair' => ['required', 'string', 'in:'.implode(',', array_column(LanguagePair::cases(), 'value'))],
         ]);
 
         $request->user()->children()->create([
-            'name'          => $validated['name'],
-            'pin'           => Hash::make($validated['pin']),
+            'name' => $validated['name'],
+            'pin' => Hash::make($validated['pin']),
             'language_pair' => $validated['language_pair'],
         ]);
 
@@ -78,13 +78,13 @@ class ChildController extends Controller
         $this->authorizeChild($request, $child);
 
         $validated = $request->validate([
-            'name'          => ['required', 'string', 'max:100'],
-            'language_pair' => ['required', 'string', 'in:' . implode(',', array_column(LanguagePair::cases(), 'value'))],
-            'pin'           => ['nullable', 'string', 'size:4', 'regex:/^\d{4}$/'],
+            'name' => ['required', 'string', 'max:100'],
+            'language_pair' => ['required', 'string', 'in:'.implode(',', array_column(LanguagePair::cases(), 'value'))],
+            'pin' => ['nullable', 'string', 'size:4', 'regex:/^\d{4}$/'],
         ]);
 
         $data = [
-            'name'          => $validated['name'],
+            'name' => $validated['name'],
             'language_pair' => $validated['language_pair'],
         ];
 

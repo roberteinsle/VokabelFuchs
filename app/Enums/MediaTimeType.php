@@ -9,9 +9,9 @@ enum MediaTimeType: string
 
     public function label(): string
     {
-        return match($this) {
-            self::GAMING   => 'Gaming',
-            self::YOUTUBE  => 'YouTube',
+        return match ($this) {
+            self::GAMING => 'Gaming',
+            self::YOUTUBE => 'YouTube',
         };
     }
 }

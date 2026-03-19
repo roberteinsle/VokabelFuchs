@@ -24,21 +24,21 @@ class MediaTimeController extends Controller
             ->get();
 
         return Inertia::render('Child/MediaTime', [
-            'balance_gaming'  => $child->media_time_balance_gaming,
+            'balance_gaming' => $child->media_time_balance_gaming,
             'balance_youtube' => $child->media_time_balance_youtube,
-            'logs'            => $logs,
+            'logs' => $logs,
         ]);
     }
 
     public function redeem(Request $request): RedirectResponse
     {
         $request->validate([
-            'type'    => ['required', 'string', 'in:gaming,youtube'],
+            'type' => ['required', 'string', 'in:gaming,youtube'],
             'minutes' => ['required', 'integer', 'min:1', 'max:300'],
         ]);
 
         $child = Child::findOrFail($request->session()->get('child_id'));
-        $type  = MediaTimeType::from($request->type);
+        $type = MediaTimeType::from($request->type);
 
         $success = $this->mediaTime->spend($child, $type, $request->minutes);
 
@@ -46,6 +46,6 @@ class MediaTimeController extends Controller
             return back()->withErrors(['minutes' => 'Nicht genug Guthaben.']);
         }
 
-        return back()->with('success', $request->minutes . ' Minuten ' . $type->label() . ' eingelöst!');
+        return back()->with('success', $request->minutes.' Minuten '.$type->label().' eingelöst!');
     }
 }

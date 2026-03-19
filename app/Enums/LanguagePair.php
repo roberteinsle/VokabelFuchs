@@ -9,7 +9,7 @@ enum LanguagePair: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::DE_EN => 'Deutsch ↔ Englisch',
             self::DE_FR => 'Deutsch ↔ Französisch',
         };
@@ -22,7 +22,7 @@ enum LanguagePair: string
 
     public function targetLang(): string
     {
-        return match($this) {
+        return match ($this) {
             self::DE_EN => 'en',
             self::DE_FR => 'fr',
         };

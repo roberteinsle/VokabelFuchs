@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Enums\LanguagePair;
 use App\Models\Child;
 use App\Models\FlashCard;
-use App\Models\Vocabulary;
 use App\Models\User;
+use App\Models\Vocabulary;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,6 +16,7 @@ class TrainingFlowTest extends TestCase
     use RefreshDatabase;
 
     private User $parent;
+
     private Child $child;
 
     protected function setUp(): void
@@ -23,8 +24,8 @@ class TrainingFlowTest extends TestCase
         parent::setUp();
         $this->parent = User::factory()->create(['pin' => null]);
         $this->child = Child::factory()->create([
-            'parent_id'     => $this->parent->id,
-            'pin'           => '1234',
+            'parent_id' => $this->parent->id,
+            'pin' => '1234',
             'language_pair' => LanguagePair::DE_EN,
         ]);
     }
@@ -38,12 +39,13 @@ class TrainingFlowTest extends TestCase
     private function createDueVocabWithCard(): FlashCard
     {
         $vocab = Vocabulary::factory()->create(['parent_id' => $this->parent->id]);
+
         return FlashCard::create([
-            'vocabulary_id'    => $vocab->id,
-            'child_id'         => $this->child->id,
-            'drawer'           => 1,
+            'vocabulary_id' => $vocab->id,
+            'child_id' => $this->child->id,
+            'drawer' => 1,
             'next_review_date' => Carbon::today(),
-            'streak_count'     => 0,
+            'streak_count' => 0,
         ]);
     }
 
@@ -84,9 +86,9 @@ class TrainingFlowTest extends TestCase
 
         $this->actingAsChild()->post(route('child.training.answer', $session->id), [
             'flash_card_id' => $card->id,
-            'answer'        => $card->vocabulary->word_en,
-            'mode'          => 'multiple_choice',
-            'target_lang'   => 'en',
+            'answer' => $card->vocabulary->word_en,
+            'mode' => 'multiple_choice',
+            'target_lang' => 'en',
         ]);
 
         $this->assertEquals(2, $card->fresh()->drawer);

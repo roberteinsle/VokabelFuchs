@@ -33,7 +33,7 @@ class ChildPinController extends Controller
     {
         $request->validate([
             'child_id' => ['required', 'integer', 'exists:children,id'],
-            'pin'      => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
+            'pin' => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
         ]);
 
         $child = Child::find($request->child_id);

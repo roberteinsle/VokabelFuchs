@@ -12,7 +12,7 @@ class LevenshteinServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new LevenshteinService();
+        $this->service = new LevenshteinService;
     }
 
     public function test_exact_match_is_acceptable(): void

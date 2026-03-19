@@ -22,9 +22,9 @@ class MediaTimeLog extends Model
     protected function casts(): array
     {
         return [
-            'type'          => MediaTimeType::class,
-            'action'        => MediaTimeAction::class,
-            'minutes'       => 'integer',
+            'type' => MediaTimeType::class,
+            'action' => MediaTimeAction::class,
+            'minutes' => 'integer',
             'balance_after' => 'integer',
         ];
     }

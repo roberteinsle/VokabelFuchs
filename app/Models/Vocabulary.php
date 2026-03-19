@@ -54,7 +54,7 @@ class Vocabulary extends Model
 
     public function getWordForLang(string $lang): ?string
     {
-        return match($lang) {
+        return match ($lang) {
             'de' => $this->word_de,
             'en' => $this->word_en,
             'fr' => $this->word_fr,
@@ -64,7 +64,7 @@ class Vocabulary extends Model
 
     public function getSentenceForLang(string $lang): ?string
     {
-        return match($lang) {
+        return match ($lang) {
             'de' => $this->sentence_de,
             'en' => $this->sentence_en,
             'fr' => $this->sentence_fr,

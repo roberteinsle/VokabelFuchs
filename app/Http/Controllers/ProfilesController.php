@@ -28,20 +28,20 @@ class ProfilesController extends Controller
             }
         }
 
-        $users = User::with(['children' => fn($q) => $q->where('is_active', true)->orderBy('name')])->get();
+        $users = User::with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('name')])->get();
 
         $profiles = [];
         foreach ($users as $user) {
             $profiles[] = [
-                'type'    => 'parent',
-                'id'      => $user->id,
-                'name'    => $user->name,
+                'type' => 'parent',
+                'id' => $user->id,
+                'name' => $user->name,
                 'has_pin' => $user->hasPin(),
             ];
             foreach ($user->children as $child) {
                 $profiles[] = [
                     'type' => 'child',
-                    'id'   => $child->id,
+                    'id' => $child->id,
                     'name' => $child->name,
                 ];
             }
@@ -65,12 +65,13 @@ class ProfilesController extends Controller
                 Auth::login($user);
                 $request->session()->regenerate();
                 $request->session()->put('parent_profile_unlocked', true);
+
                 return redirect()->route('parent.dashboard');
             }
 
             return Inertia::render('Profiles/Pin', [
-                'type'         => 'parent',
-                'id'           => $id,
+                'type' => 'parent',
+                'id' => $id,
                 'profile_name' => $user->name,
             ]);
         }
@@ -79,8 +80,8 @@ class ProfilesController extends Controller
             $child = Child::where('is_active', true)->findOrFail($id);
 
             return Inertia::render('Profiles/Pin', [
-                'type'         => 'child',
-                'id'           => $id,
+                'type' => 'child',
+                'id' => $id,
                 'profile_name' => $child->name,
             ]);
         }
@@ -95,8 +96,8 @@ class ProfilesController extends Controller
     {
         $request->validate([
             'type' => ['required', 'in:parent,child'],
-            'id'   => ['required', 'integer'],
-            'pin'  => ['required', 'string', 'size:4'],
+            'id' => ['required', 'integer'],
+            'pin' => ['required', 'string', 'size:4'],
         ]);
 
         if ($request->type === 'parent') {

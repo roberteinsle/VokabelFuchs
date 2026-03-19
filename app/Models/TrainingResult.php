@@ -19,9 +19,9 @@ class TrainingResult extends Model
     protected function casts(): array
     {
         return [
-            'was_correct'   => 'boolean',
+            'was_correct' => 'boolean',
             'drawer_before' => 'integer',
-            'drawer_after'  => 'integer',
+            'drawer_after' => 'integer',
         ];
     }
 

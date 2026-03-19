@@ -27,14 +27,14 @@ class TrainingSession extends Model
     protected function casts(): array
     {
         return [
-            'language_pair'              => LanguagePair::class,
-            'training_mode'              => TrainingMode::class,
-            'started_at'                 => 'datetime',
-            'ended_at'                   => 'datetime',
-            'cards_correct'              => 'integer',
-            'cards_wrong'                => 'integer',
-            'media_time_earned_gaming'   => 'integer',
-            'media_time_earned_youtube'  => 'integer',
+            'language_pair' => LanguagePair::class,
+            'training_mode' => TrainingMode::class,
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
+            'cards_correct' => 'integer',
+            'cards_wrong' => 'integer',
+            'media_time_earned_gaming' => 'integer',
+            'media_time_earned_youtube' => 'integer',
         ];
     }
 

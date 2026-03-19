@@ -3,12 +3,12 @@
 namespace Tests\Unit;
 
 use App\Enums\LanguagePair;
+use App\Models\Child;
 use App\Models\FlashCard;
 use App\Models\Tag;
+use App\Models\User;
 use App\Models\Vocabulary;
 use App\Models\VocabularyList;
-use App\Models\Child;
-use App\Models\User;
 use App\Services\LeitnerService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,7 +23,7 @@ class LeitnerServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new LeitnerService();
+        $this->service = new LeitnerService;
     }
 
     public function test_correct_answer_moves_card_up_one_drawer(): void
@@ -114,8 +114,8 @@ class LeitnerServiceTest extends TestCase
         $child = Child::factory()->create(['parent_id' => $parent->id]);
 
         $list = VocabularyList::create([
-            'parent_id'     => $parent->id,
-            'name'          => 'Test Fach',
+            'parent_id' => $parent->id,
+            'name' => 'Test Fach',
             'language_pair' => LanguagePair::DE_EN->value,
         ]);
 
@@ -135,7 +135,7 @@ class LeitnerServiceTest extends TestCase
 
         $created = $this->service->createMissingCards($child->id, $parent->id);
 
-        $this->assertEquals(1, $created);
+        $this->assertEquals(3, $created); // 3 modes per vocabulary
         $this->assertDatabaseHas('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabA->id]);
         $this->assertDatabaseMissing('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabB->id]);
         $this->assertDatabaseMissing('flash_cards', ['child_id' => $child->id, 'vocabulary_id' => $vocabC->id]);
@@ -147,8 +147,8 @@ class LeitnerServiceTest extends TestCase
         $child = Child::factory()->create(['parent_id' => $parent->id]);
 
         $list = VocabularyList::create([
-            'parent_id'     => $parent->id,
-            'name'          => 'Test Fach',
+            'parent_id' => $parent->id,
+            'name' => 'Test Fach',
             'language_pair' => LanguagePair::DE_EN->value,
         ]);
 
@@ -163,7 +163,7 @@ class LeitnerServiceTest extends TestCase
         $created = $this->service->createMissingCards($child->id, $parent->id);
 
         $this->assertEquals(0, $created);
-        $this->assertDatabaseCount('flash_cards', 1);
+        $this->assertDatabaseCount('flash_cards', 3); // 3 modes per vocabulary
     }
 
     private function makeCard(int $drawer = 1, ?int $childId = null, ?Carbon $nextReview = null): FlashCard
@@ -177,11 +177,11 @@ class LeitnerServiceTest extends TestCase
         $vocab = Vocabulary::factory()->create();
 
         return FlashCard::create([
-            'vocabulary_id'    => $vocab->id,
-            'child_id'         => $childId,
-            'drawer'           => $drawer,
+            'vocabulary_id' => $vocab->id,
+            'child_id' => $childId,
+            'drawer' => $drawer,
             'next_review_date' => $nextReview ?? Carbon::today(),
-            'streak_count'     => 0,
+            'streak_count' => 0,
         ]);
     }
 }

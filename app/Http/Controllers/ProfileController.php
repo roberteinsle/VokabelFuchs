@@ -20,8 +20,8 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status'          => session('status'),
-            'hasPin'          => $request->user()->hasPin(),
+            'status' => session('status'),
+            'hasPin' => $request->user()->hasPin(),
         ]);
     }
 
@@ -47,7 +47,7 @@ class ProfileController extends Controller
     public function updatePin(Request $request): RedirectResponse
     {
         $request->validate([
-            'pin'              => ['required', 'string', 'size:4', 'regex:/^\d{4}$/', 'confirmed'],
+            'pin' => ['required', 'string', 'size:4', 'regex:/^\d{4}$/', 'confirmed'],
             'pin_confirmation' => ['required'],
         ]);
 

@@ -21,13 +21,13 @@ class MediaTimeRule extends Model
     protected function casts(): array
     {
         return [
-            'minutes_learn_per_gaming'   => 'integer',
-            'minutes_gaming_per_learn'   => 'integer',
-            'minutes_learn_per_youtube'  => 'integer',
-            'minutes_youtube_per_learn'  => 'integer',
-            'daily_cap_gaming'           => 'integer',
-            'daily_cap_youtube'          => 'integer',
-            'min_learn_for_unlock'       => 'integer',
+            'minutes_learn_per_gaming' => 'integer',
+            'minutes_gaming_per_learn' => 'integer',
+            'minutes_learn_per_youtube' => 'integer',
+            'minutes_youtube_per_learn' => 'integer',
+            'daily_cap_gaming' => 'integer',
+            'daily_cap_youtube' => 'integer',
+            'min_learn_for_unlock' => 'integer',
         ];
     }
 

@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ChildController;
 use App\Http\Controllers\ChildDashboardController;
+use App\Http\Controllers\ChildTagController;
 use App\Http\Controllers\FlashCardController;
 use App\Http\Controllers\MediaTimeController;
 use App\Http\Controllers\MediaTimeRuleController;
@@ -9,19 +11,17 @@ use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\StatisticsController;
-use App\Http\Controllers\BackupController;
-use App\Http\Controllers\ChildTagController;
-use App\Http\Controllers\VocabularyExportController;
-use App\Http\Controllers\VocabularyImportController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TrainingSessionController;
 use App\Http\Controllers\VocabularyController;
+use App\Http\Controllers\VocabularyExportController;
+use App\Http\Controllers\VocabularyImportController;
 use App\Http\Controllers\VocabularyListController;
 use Illuminate\Support\Facades\Route;
 
 // === PROFILE SELECTION (public — no login required) ===
 Route::get('/', [ProfilesController::class, 'index'])->name('profiles.index');
-Route::get('/profiles', fn() => redirect()->route('profiles.index'));
+Route::get('/profiles', fn () => redirect()->route('profiles.index'));
 Route::get('/profiles/{type}/{id}/pin', [ProfilesController::class, 'showPin'])->name('profiles.pin');
 Route::post('/profiles/unlock', [ProfilesController::class, 'unlock'])->name('profiles.unlock');
 Route::post('/profiles/lock', [ProfilesController::class, 'lock'])->name('profiles.lock');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\VocabularyList;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -28,7 +29,7 @@ return new class extends Migration
     {
         Schema::table('tags', function (Blueprint $table) {
             $table->dropUnique(['vocabulary_list_id', 'name']);
-            $table->dropForeignIdFor(\App\Models\VocabularyList::class);
+            $table->dropForeignIdFor(VocabularyList::class);
             $table->dropColumn('vocabulary_list_id');
             $table->unique(['parent_id', 'name']);
         });

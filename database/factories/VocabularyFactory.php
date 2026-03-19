@@ -24,9 +24,9 @@ class VocabularyFactory extends Factory
 
         return [
             'parent_id' => User::factory(),
-            'word_de'   => $word['de'] . ' ' . $this->faker->unique()->numberBetween(1, 9999),
-            'word_en'   => $word['en'],
-            'word_fr'   => $word['fr'],
+            'word_de' => $word['de'].' '.$this->faker->unique()->numberBetween(1, 9999),
+            'word_en' => $word['en'],
+            'word_fr' => $word['fr'],
         ];
     }
 }

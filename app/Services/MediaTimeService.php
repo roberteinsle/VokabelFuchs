@@ -22,11 +22,11 @@ class MediaTimeService
         if (! $rule) {
             // Default rules if none configured
             $rule = new MediaTimeRule([
-                'minutes_learn_per_gaming'   => 10,
-                'minutes_gaming_per_learn'   => 15,
-                'minutes_learn_per_youtube'  => 10,
-                'minutes_youtube_per_learn'  => 10,
-                'min_learn_for_unlock'       => 5,
+                'minutes_learn_per_gaming' => 10,
+                'minutes_gaming_per_learn' => 15,
+                'minutes_learn_per_youtube' => 10,
+                'minutes_youtube_per_learn' => 10,
+                'min_learn_for_unlock' => 5,
             ]);
         }
 
@@ -36,11 +36,11 @@ class MediaTimeService
             return ['gaming' => 0, 'youtube' => 0];
         }
 
-        $gamingBlocks  = (int) floor($learnedMinutes / $rule->minutes_learn_per_gaming);
+        $gamingBlocks = (int) floor($learnedMinutes / $rule->minutes_learn_per_gaming);
         $youtubeBlocks = (int) floor($learnedMinutes / $rule->minutes_learn_per_youtube);
 
         return [
-            'gaming'  => $gamingBlocks * $rule->minutes_gaming_per_learn,
+            'gaming' => $gamingBlocks * $rule->minutes_gaming_per_learn,
             'youtube' => $youtubeBlocks * $rule->minutes_youtube_per_learn,
         ];
     }
@@ -94,12 +94,12 @@ class MediaTimeService
         $newBalance = $child->fresh()->{$balanceField};
 
         MediaTimeLog::create([
-            'child_id'            => $child->id,
+            'child_id' => $child->id,
             'training_session_id' => $sessionId,
-            'type'                => $type->value,
-            'action'              => MediaTimeAction::EARNED->value,
-            'minutes'             => $minutes,
-            'balance_after'       => $newBalance,
+            'type' => $type->value,
+            'action' => MediaTimeAction::EARNED->value,
+            'minutes' => $minutes,
+            'balance_after' => $newBalance,
         ]);
     }
 
@@ -121,10 +121,10 @@ class MediaTimeService
         $newBalance = $child->fresh()->{$balanceField};
 
         MediaTimeLog::create([
-            'child_id'      => $child->id,
-            'type'          => $type->value,
-            'action'        => MediaTimeAction::SPENT->value,
-            'minutes'       => $minutes,
+            'child_id' => $child->id,
+            'type' => $type->value,
+            'action' => MediaTimeAction::SPENT->value,
+            'minutes' => $minutes,
             'balance_after' => $newBalance,
         ]);
 
@@ -149,7 +149,7 @@ class MediaTimeService
     public function getBalance(Child $child): array
     {
         return [
-            'gaming'  => $child->media_time_balance_gaming,
+            'gaming' => $child->media_time_balance_gaming,
             'youtube' => $child->media_time_balance_youtube,
         ];
     }

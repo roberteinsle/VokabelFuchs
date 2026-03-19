@@ -33,13 +33,13 @@ class VocabularyImportController extends Controller
         }
 
         $request->validate([
-            'file'   => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
             'tag_id' => ['nullable', 'integer', 'exists:tags,id'],
         ]);
 
         // Fallback tag_id from form (used when CSV row has no cluster column)
         $fallbackTagId = $request->tag_id ? (int) $request->tag_id : null;
-        $autoTag       = null; // lazy: created on first unclustered row
+        $autoTag = null; // lazy: created on first unclustered row
 
         $targetField = $vocabularyList->language_pair === 'de_fr' ? 'word_fr' : 'word_en';
 
@@ -48,20 +48,21 @@ class VocabularyImportController extends Controller
             FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
         );
 
-        $imported     = 0;
-        $skipped      = 0;
-        $tagCache     = []; // name → id, avoids repeated DB lookups
+        $imported = 0;
+        $skipped = 0;
+        $tagCache = []; // name → id, avoids repeated DB lookups
 
         foreach ($lines as $i => $line) {
             $parts = str_getcsv($line, ';');
 
             if (count($parts) < 2) {
                 $skipped++;
+
                 continue;
             }
 
-            $de          = trim($parts[0]);
-            $target      = trim($parts[1]);
+            $de = trim($parts[0]);
+            $target = trim($parts[1]);
             $clusterName = trim($parts[2] ?? '');
 
             // Skip header row
@@ -71,6 +72,7 @@ class VocabularyImportController extends Controller
 
             if ($de === '' || $target === '') {
                 $skipped++;
+
                 continue;
             }
 
@@ -91,7 +93,7 @@ class VocabularyImportController extends Controller
                 // Create auto-cluster once for all unclustered rows
                 if ($autoTag === null) {
                     $autoTag = $vocabularyList->tags()->create([
-                        'name'      => 'import_' . time(),
+                        'name' => 'import_'.time(),
                         'parent_id' => $request->user()->id,
                     ]);
                 }
@@ -100,13 +102,13 @@ class VocabularyImportController extends Controller
 
             $vocab = Vocabulary::firstOrCreate(
                 [
-                    'word_de'            => $de,
-                    'parent_id'          => $request->user()->id,
+                    'word_de' => $de,
+                    'parent_id' => $request->user()->id,
                     'vocabulary_list_id' => $vocabularyList->id,
                 ],
                 [
                     $targetField => $target,
-                    'is_active'  => true,
+                    'is_active' => true,
                 ]
             );
 
@@ -126,6 +128,6 @@ class VocabularyImportController extends Controller
 
         return redirect()
             ->route('parent.vocabulary-lists.show', $vocabularyList->id)
-            ->with('success', $msg . '.');
+            ->with('success', $msg.'.');
     }
 }

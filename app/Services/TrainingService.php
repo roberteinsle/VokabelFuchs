@@ -14,7 +14,7 @@ class TrainingService
     public function generateMultipleChoiceOptions(FlashCard $card, string $targetLang): array
     {
         $correct = $card->vocabulary->getWordForLang($targetLang);
-        $wordField = 'word_' . $targetLang;
+        $wordField = 'word_'.$targetLang;
 
         // Fetch wrong options from sibling vocabularies of the same parent
         $wrongOptions = Vocabulary::where('parent_id', $card->vocabulary->parent_id)
@@ -45,13 +45,13 @@ class TrainingService
 
         $baseData = [
             'flash_card_id' => $card->id,
-            'mode'          => $mode,
-            'source_lang'   => $sourceLang,
-            'target_lang'   => $targetLang,
-            'prompt'        => $vocab->getWordForLang($sourceLang),
-            'sentence'      => $vocab->getSentenceForLang($sourceLang),
-            'image_path'    => $vocab->image_path,
-            'drawer'        => $card->drawer,
+            'mode' => $mode,
+            'source_lang' => $sourceLang,
+            'target_lang' => $targetLang,
+            'prompt' => $vocab->getWordForLang($sourceLang),
+            'sentence' => $vocab->getSentenceForLang($sourceLang),
+            'image_path' => $vocab->image_path,
+            'drawer' => $card->drawer,
         ];
 
         if ($mode === 'multiple_choice') {

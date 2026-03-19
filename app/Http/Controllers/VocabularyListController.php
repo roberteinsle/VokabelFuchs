@@ -20,7 +20,7 @@ class VocabularyListController extends Controller
             ->get();
 
         return Inertia::render('VocabularyList/Index', [
-            'lists'         => $lists,
+            'lists' => $lists,
             'languagePairs' => collect(LanguagePair::cases())->map(fn ($lp) => [
                 'value' => $lp->value,
                 'label' => $lp->label(),
@@ -31,9 +31,9 @@ class VocabularyListController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'          => ['required', 'string', 'max:255'],
-            'language_pair' => ['required', 'string', 'in:' . implode(',', array_column(LanguagePair::cases(), 'value'))],
-            'description'   => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'language_pair' => ['required', 'string', 'in:'.implode(',', array_column(LanguagePair::cases(), 'value'))],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $list = $request->user()->vocabularyLists()->create($validated);
@@ -65,10 +65,10 @@ class VocabularyListController extends Controller
             ->get(['id', 'name']);
 
         return Inertia::render('VocabularyList/Show', [
-            'list'         => $vocabularyList,
+            'list' => $vocabularyList,
             'vocabularies' => $vocabularies,
-            'tags'         => $tags,
-            'allChildren'  => $allChildren,
+            'tags' => $tags,
+            'allChildren' => $allChildren,
         ]);
     }
 
@@ -79,8 +79,8 @@ class VocabularyListController extends Controller
         }
 
         $validated = $request->validate([
-            'name'          => ['required', 'string', 'max:255'],
-            'description'   => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $vocabularyList->update($validated);

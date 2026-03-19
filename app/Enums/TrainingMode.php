@@ -10,10 +10,10 @@ enum TrainingMode: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MULTIPLE_CHOICE => 'Auswählen',
-            self::FREE_TEXT       => 'Schreiben',
-            self::DICTATION       => 'Hören & Schreiben',
+            self::FREE_TEXT => 'Schreiben',
+            self::DICTATION => 'Hören & Schreiben',
         };
     }
 }

@@ -17,13 +17,13 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $leitner = new LeitnerService();
+        $leitner = new LeitnerService;
 
         // Create demo parent
         $parent = User::firstOrCreate(
             ['email' => 'jr@einsle.com'],
             [
-                'name'     => 'Demo Elternteil',
+                'name' => 'Demo Elternteil',
                 'password' => Hash::make('7U9%!7#MehZSqkjherTK8u'),
             ]
         );
@@ -32,11 +32,11 @@ class DemoSeeder extends Seeder
         MediaTimeRule::firstOrCreate(
             ['parent_id' => $parent->id],
             [
-                'minutes_learn_per_gaming'   => 10,
-                'minutes_learn_per_youtube'  => 10,
-                'daily_cap_gaming'           => 60,
-                'daily_cap_youtube'          => 30,
-                'min_learn_for_unlock'       => 5,
+                'minutes_learn_per_gaming' => 10,
+                'minutes_learn_per_youtube' => 10,
+                'daily_cap_gaming' => 60,
+                'daily_cap_youtube' => 30,
+                'min_learn_for_unlock' => 5,
             ]
         );
 
@@ -44,16 +44,16 @@ class DemoSeeder extends Seeder
         $kind1 = Child::firstOrCreate(
             ['name' => 'Tobias', 'parent_id' => $parent->id],
             [
-                'pin'           => '1234',
+                'pin' => '1234',
                 'language_pair' => LanguagePair::DE_EN,
-                'is_active'     => true,
+                'is_active' => true,
             ]
         );
 
         Child::firstOrCreate(
             ['name' => 'Jonas', 'parent_id' => $parent->id],
             [
-                'pin'       => '5678',
+                'pin' => '5678',
                 'is_active' => true,
             ]
         );
@@ -71,7 +71,7 @@ class DemoSeeder extends Seeder
                 ['parent_id' => $parent->id]
             ));
 
-        $enNature  = $enTags->firstWhere('name', 'Nature');
+        $enNature = $enTags->firstWhere('name', 'Nature');
         $enAnimals = $enTags->firstWhere('name', 'Animals');
         $enCamping = $enTags->firstWhere('name', 'Camping');
 

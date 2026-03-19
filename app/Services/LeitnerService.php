@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Child;
 use App\Models\FlashCard;
+use App\Models\Vocabulary;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class LeitnerService
 {
@@ -52,7 +55,7 @@ class LeitnerService
      * Get all due cards for a child (next_review_date <= today).
      * If $forceAll is true, return all cards regardless of review date.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     /**
      * Get due cards for a child.
@@ -119,6 +122,7 @@ class LeitnerService
         foreach ($modes as $mode) {
             $result[$mode] = $this->getDrawerStats($childId, $mode);
         }
+
         return $result;
     }
 
@@ -130,9 +134,9 @@ class LeitnerService
         return FlashCard::where('child_id', $childId)
             ->where('training_mode', $mode)
             ->update([
-                'drawer'           => 1,
+                'drawer' => 1,
                 'next_review_date' => Carbon::today(),
-                'streak_count'     => 0,
+                'streak_count' => 0,
             ]);
     }
 
@@ -142,7 +146,7 @@ class LeitnerService
      */
     public function createMissingCards(int $childId, int $parentId): int
     {
-        $assignedTagIds = \App\Models\Child::find($childId)
+        $assignedTagIds = Child::find($childId)
             ->tags()
             ->pluck('tags.id')
             ->toArray();
@@ -157,10 +161,10 @@ class LeitnerService
         $existing = FlashCard::where('child_id', $childId)
             ->select('vocabulary_id', 'training_mode')
             ->get()
-            ->map(fn ($r) => $r->vocabulary_id . '_' . $r->training_mode)
+            ->map(fn ($r) => $r->vocabulary_id.'_'.$r->training_mode)
             ->toArray();
 
-        $vocabularies = \App\Models\Vocabulary::where('parent_id', $parentId)
+        $vocabularies = Vocabulary::where('parent_id', $parentId)
             ->where('is_active', true)
             ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $assignedTagIds))
             ->get();
@@ -168,16 +172,16 @@ class LeitnerService
         $created = 0;
         foreach ($vocabularies as $vocab) {
             foreach ($modes as $mode) {
-                if (in_array($vocab->id . '_' . $mode, $existing)) {
+                if (in_array($vocab->id.'_'.$mode, $existing)) {
                     continue;
                 }
                 FlashCard::create([
-                    'vocabulary_id'    => $vocab->id,
-                    'child_id'         => $childId,
-                    'training_mode'    => $mode,
-                    'drawer'           => 1,
+                    'vocabulary_id' => $vocab->id,
+                    'child_id' => $childId,
+                    'training_mode' => $mode,
+                    'drawer' => 1,
                     'next_review_date' => Carbon::today(),
-                    'streak_count'     => 0,
+                    'streak_count' => 0,
                 ]);
                 $created++;
             }

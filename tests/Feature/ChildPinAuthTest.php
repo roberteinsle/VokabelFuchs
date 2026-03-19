@@ -12,10 +12,10 @@ class ChildPinAuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_selection_requires_auth(): void
+    public function test_profile_selection_is_public(): void
     {
         $response = $this->get(route('profiles.index'));
-        $response->assertRedirect(route('login'));
+        $response->assertStatus(200); // public route
     }
 
     public function test_authenticated_user_sees_profile_selection(): void
@@ -29,15 +29,15 @@ class ChildPinAuthTest extends TestCase
     {
         $parent = User::factory()->create();
         $child = Child::factory()->create([
-            'parent_id'     => $parent->id,
-            'pin'           => '1234',
+            'parent_id' => $parent->id,
+            'pin' => '1234',
             'language_pair' => LanguagePair::DE_EN,
         ]);
 
         $response = $this->actingAs($parent)->post(route('profiles.unlock'), [
             'type' => 'child',
-            'id'   => $child->id,
-            'pin'  => '1234',
+            'id' => $child->id,
+            'pin' => '1234',
         ]);
 
         $response->assertRedirect(route('child.home'));
@@ -48,15 +48,15 @@ class ChildPinAuthTest extends TestCase
     {
         $parent = User::factory()->create();
         $child = Child::factory()->create([
-            'parent_id'     => $parent->id,
-            'pin'           => '1234',
+            'parent_id' => $parent->id,
+            'pin' => '1234',
             'language_pair' => LanguagePair::DE_EN,
         ]);
 
         $response = $this->actingAs($parent)->post(route('profiles.unlock'), [
             'type' => 'child',
-            'id'   => $child->id,
-            'pin'  => '9999',
+            'id' => $child->id,
+            'pin' => '9999',
         ]);
 
         $response->assertSessionHasErrors();
@@ -67,7 +67,7 @@ class ChildPinAuthTest extends TestCase
     {
         $parent = User::factory()->create();
         $child = Child::factory()->create([
-            'parent_id'     => $parent->id,
+            'parent_id' => $parent->id,
             'language_pair' => LanguagePair::DE_EN,
         ]);
 

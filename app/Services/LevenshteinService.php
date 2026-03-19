@@ -11,7 +11,7 @@ class LevenshteinService
      */
     public function isAcceptable(string $input, string $target): bool
     {
-        $input  = mb_strtolower(trim($input));
+        $input = mb_strtolower(trim($input));
         $target = mb_strtolower(trim($target));
 
         if ($input === $target) {

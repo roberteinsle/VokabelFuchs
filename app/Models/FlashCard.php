@@ -21,8 +21,8 @@ class FlashCard extends Model
     protected function casts(): array
     {
         return [
-            'drawer'           => 'integer',
-            'streak_count'     => 'integer',
+            'drawer' => 'integer',
+            'streak_count' => 'integer',
             'next_review_date' => 'date',
             'last_reviewed_at' => 'datetime',
         ];

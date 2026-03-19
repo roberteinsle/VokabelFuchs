@@ -35,14 +35,14 @@ class VocabularyController extends Controller
     {
         $validated = $request->validate([
             'vocabulary_list_id' => ['nullable', 'integer', 'exists:vocabulary_lists,id'],
-            'word_de'            => ['required', 'string', 'max:255'],
-            'word_en'            => ['nullable', 'string', 'max:255'],
-            'word_fr'            => ['nullable', 'string', 'max:255'],
-            'sentence_de'        => ['nullable', 'string', 'max:500'],
-            'sentence_en'        => ['nullable', 'string', 'max:500'],
-            'sentence_fr'        => ['nullable', 'string', 'max:500'],
-            'tag_ids'            => ['nullable', 'array'],
-            'tag_ids.*'          => ['integer', 'exists:tags,id'],
+            'word_de' => ['required', 'string', 'max:255'],
+            'word_en' => ['nullable', 'string', 'max:255'],
+            'word_fr' => ['nullable', 'string', 'max:255'],
+            'sentence_de' => ['nullable', 'string', 'max:500'],
+            'sentence_en' => ['nullable', 'string', 'max:500'],
+            'sentence_fr' => ['nullable', 'string', 'max:500'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $vocabulary = $request->user()->vocabularies()->create($validated);
@@ -74,8 +74,8 @@ class VocabularyController extends Controller
 
         return Inertia::render('Vocabulary/Edit', [
             'vocabulary' => $vocabulary,
-            'list'       => $vocabulary->vocabularyList,
-            'tags'       => $request->user()->tags()->orderBy('name')->get(),
+            'list' => $vocabulary->vocabularyList,
+            'tags' => $request->user()->tags()->orderBy('name')->get(),
         ]);
     }
 
@@ -86,14 +86,14 @@ class VocabularyController extends Controller
         }
 
         $validated = $request->validate([
-            'word_de'     => ['required', 'string', 'max:255'],
-            'word_en'     => ['nullable', 'string', 'max:255'],
-            'word_fr'     => ['nullable', 'string', 'max:255'],
+            'word_de' => ['required', 'string', 'max:255'],
+            'word_en' => ['nullable', 'string', 'max:255'],
+            'word_fr' => ['nullable', 'string', 'max:255'],
             'sentence_de' => ['nullable', 'string', 'max:500'],
             'sentence_en' => ['nullable', 'string', 'max:500'],
             'sentence_fr' => ['nullable', 'string', 'max:500'],
-            'tag_ids'     => ['nullable', 'array'],
-            'tag_ids.*'   => ['integer', 'exists:tags,id'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $vocabulary->update($validated);
@@ -129,7 +129,7 @@ class VocabularyController extends Controller
     public function bulkDestroy(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'ids'   => ['required', 'array', 'min:1'],
+            'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['integer', 'exists:vocabularies,id'],
         ]);
 
@@ -145,18 +145,18 @@ class VocabularyController extends Controller
 
         if ($listId) {
             return redirect()->route('parent.vocabulary-lists.show', $listId)
-                ->with('success', $vocabs->count() . ' Vokabeln gelöscht.');
+                ->with('success', $vocabs->count().' Vokabeln gelöscht.');
         }
 
         return redirect()->route('parent.vocabulary-lists.index')
-            ->with('success', $vocabs->count() . ' Vokabeln gelöscht.');
+            ->with('success', $vocabs->count().' Vokabeln gelöscht.');
     }
 
     public function bulkAssignTag(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'ids'    => ['required', 'array', 'min:1'],
-            'ids.*'  => ['integer', 'exists:vocabularies,id'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:vocabularies,id'],
             'tag_id' => ['required', 'integer', 'exists:tags,id'],
         ]);
 

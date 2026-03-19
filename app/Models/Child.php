@@ -28,11 +28,11 @@ class Child extends Model
     protected function casts(): array
     {
         return [
-            'language_pair'                => LanguagePair::class,
-            'media_time_balance_gaming'    => 'integer',
-            'media_time_balance_youtube'   => 'integer',
-            'is_active'                    => 'boolean',
-            'pin'                          => 'hashed',
+            'language_pair' => LanguagePair::class,
+            'media_time_balance_gaming' => 'integer',
+            'media_time_balance_youtube' => 'integer',
+            'is_active' => 'boolean',
+            'pin' => 'hashed',
         ];
     }
 

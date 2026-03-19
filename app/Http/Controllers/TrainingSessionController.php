@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Enums\LanguagePair;
 use App\Enums\TrainingMode;
 use App\Models\Child;
+use App\Models\FlashCard;
+use App\Models\Tag;
 use App\Models\TrainingSession;
-use App\Services\LevenshteinService;
 use App\Services\LeitnerService;
+use App\Services\LevenshteinService;
 use App\Services\MediaTimeService;
 use App\Services\TrainingService;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -31,30 +32,29 @@ class TrainingSessionController extends Controller
 
         // Get clusters the child is assigned to
         $assignedTags = $child->tags()->with('vocabularyList:id,name,language_pair')->get();
-        $modes = array_column(\App\Enums\TrainingMode::cases(), 'value');
+        $modes = array_column(TrainingMode::cases(), 'value');
 
         $clusters = $assignedTags->map(function ($tag) use ($child, $modes) {
-            $dueByMode = collect($modes)->mapWithKeys(fn ($m) =>
-                [$m => $this->leitner->getDueCards($child->id, [$tag->id], $m)->count()]
+            $dueByMode = collect($modes)->mapWithKeys(fn ($m) => [$m => $this->leitner->getDueCards($child->id, [$tag->id], $m)->count()]
             )->toArray();
+
             return [
-                'tag_id'        => $tag->id,
-                'tag_name'      => $tag->name,
-                'fach_name'     => $tag->vocabularyList?->name,
+                'tag_id' => $tag->id,
+                'tag_name' => $tag->name,
+                'fach_name' => $tag->vocabularyList?->name,
                 'language_pair' => $tag->vocabularyList?->language_pair?->value,
-                'due_by_mode'   => $dueByMode,
+                'due_by_mode' => $dueByMode,
             ];
         });
 
-        $totalDueByMode = collect($modes)->mapWithKeys(fn ($m) =>
-            [$m => $this->leitner->getDueCards($child->id, null, $m)->count()]
+        $totalDueByMode = collect($modes)->mapWithKeys(fn ($m) => [$m => $this->leitner->getDueCards($child->id, null, $m)->count()]
         )->toArray();
 
         return Inertia::render('Training/Index', [
-            'child'            => $child,
-            'due_by_mode'      => $totalDueByMode,
-            'clusters'         => $clusters,
-            'training_modes'   => collect(TrainingMode::cases())->map(fn ($m) => [
+            'child' => $child,
+            'due_by_mode' => $totalDueByMode,
+            'clusters' => $clusters,
+            'training_modes' => collect(TrainingMode::cases())->map(fn ($m) => [
                 'value' => $m->value,
                 'label' => $m->label(),
             ]),
@@ -64,11 +64,11 @@ class TrainingSessionController extends Controller
     public function start(Request $request): RedirectResponse
     {
         $request->validate([
-            'training_mode' => ['required', 'string', 'in:' . implode(',', array_column(TrainingMode::cases(), 'value'))],
-            'tag_id'        => ['nullable', 'integer', 'exists:tags,id'],
-            'direction'     => ['nullable', 'string', 'in:forward,backward'],
-            'drawers'       => ['nullable', 'array'],
-            'drawers.*'     => ['integer', 'between:1,5'],
+            'training_mode' => ['required', 'string', 'in:'.implode(',', array_column(TrainingMode::cases(), 'value'))],
+            'tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+            'direction' => ['nullable', 'string', 'in:forward,backward'],
+            'drawers' => ['nullable', 'array'],
+            'drawers.*' => ['integer', 'between:1,5'],
         ]);
 
         $child = Child::findOrFail($request->session()->get('child_id'));
@@ -76,21 +76,21 @@ class TrainingSessionController extends Controller
         // Derive language_pair from selected cluster's Fach, or fall back to child's setting
         $tagId = $request->input('tag_id');
         if ($tagId) {
-            $tag = \App\Models\Tag::with('vocabularyList')->find($tagId);
+            $tag = Tag::with('vocabularyList')->find($tagId);
             $languagePair = $tag?->vocabularyList?->language_pair?->value
                 ?? $child->language_pair?->value
-                ?? \App\Enums\LanguagePair::DE_EN->value;
+                ?? LanguagePair::DE_EN->value;
         } else {
-            $languagePair = $child->language_pair?->value ?? \App\Enums\LanguagePair::DE_EN->value;
+            $languagePair = $child->language_pair?->value ?? LanguagePair::DE_EN->value;
         }
 
         $session = TrainingSession::create([
-            'child_id'      => $child->id,
+            'child_id' => $child->id,
             'language_pair' => $languagePair,
             'training_mode' => $request->training_mode,
-            'tag_id'        => $tagId,
-            'direction'     => $request->input('direction', 'forward'),
-            'started_at'    => now(),
+            'tag_id' => $tagId,
+            'direction' => $request->input('direction', 'forward'),
+            'started_at' => now(),
         ]);
 
         $drawers = array_filter(array_map('intval', $request->input('drawers', [])));
@@ -112,13 +112,13 @@ class TrainingSessionController extends Controller
         }
 
         $tagFilter = $session->tag_id ? [$session->tag_id] : null;
-        $mode      = $session->training_mode->value;
-        $drawers   = $request->session()->get("training_drawers_{$session->id}", []);
-        $dueCards  = $this->leitner->getDueCards($childId, $tagFilter, $mode, ! empty($drawers) ? $drawers : null);
+        $mode = $session->training_mode->value;
+        $drawers = $request->session()->get("training_drawers_{$session->id}", []);
+        $dueCards = $this->leitner->getDueCards($childId, $tagFilter, $mode, ! empty($drawers) ? $drawers : null);
 
         // Exclude cards already answered or skipped in this session
         $answeredCardIds = $session->results()->pluck('flash_card_id')->toArray();
-        $skippedCardIds  = $request->session()->get("training_skipped_{$session->id}", []);
+        $skippedCardIds = $request->session()->get("training_skipped_{$session->id}", []);
         $remaining = $dueCards->whereNotIn('id', array_merge($answeredCardIds, $skippedCardIds))->values();
 
         if ($remaining->isEmpty()) {
@@ -126,16 +126,17 @@ class TrainingSessionController extends Controller
                 $session->update(['ended_at' => now()]);
                 $credited = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
                 $session->update([
-                    'media_time_earned_gaming'  => $credited['gaming'],
+                    'media_time_earned_gaming' => $credited['gaming'],
                     'media_time_earned_youtube' => $credited['youtube'],
                 ]);
             }
+
             return redirect()->route('child.training.summary', $session->id);
         }
 
         $currentCard = $remaining->first();
-        $langPair  = $session->language_pair;
-        $backward  = ($session->direction ?? 'forward') === 'backward';
+        $langPair = $session->language_pair;
+        $backward = ($session->direction ?? 'forward') === 'backward';
         $sourceLang = $backward ? $langPair->targetLang() : $langPair->sourceLang();
         $targetLang = $backward ? $langPair->sourceLang() : $langPair->targetLang();
 
@@ -147,14 +148,14 @@ class TrainingSessionController extends Controller
         );
 
         return Inertia::render('Training/Session', [
-            'session'         => $session->only('id', 'training_mode', 'started_at', 'cards_correct', 'cards_wrong'),
-            'question'        => $question,
+            'session' => $session->only('id', 'training_mode', 'started_at', 'cards_correct', 'cards_wrong'),
+            'question' => $question,
             'cards_remaining' => $remaining->count(),
-            'cards_total'     => $dueCards->count(),
-            'last_result'     => session()->has('last_answer_correct') ? [
-                'correct'        => session('last_answer_correct'),
+            'cards_total' => $dueCards->count(),
+            'last_result' => session()->has('last_answer_correct') ? [
+                'correct' => session('last_answer_correct'),
                 'correct_answer' => session('last_correct_answer'),
-                'given_answer'   => session('last_answer_given'),
+                'given_answer' => session('last_answer_given'),
             ] : null,
         ]);
     }
@@ -169,33 +170,33 @@ class TrainingSessionController extends Controller
 
         $request->validate([
             'flash_card_id' => ['required', 'integer'],
-            'answer'        => ['nullable', 'string', 'max:255'],
-            'mode'          => ['required', 'string'],
-            'target_lang'   => ['required', 'string', 'in:de,en,fr'],
+            'answer' => ['nullable', 'string', 'max:255'],
+            'mode' => ['required', 'string'],
+            'target_lang' => ['required', 'string', 'in:de,en,fr'],
         ]);
 
-        $card = \App\Models\FlashCard::where('id', $request->flash_card_id)
+        $card = FlashCard::where('id', $request->flash_card_id)
             ->where('child_id', $childId)
             ->firstOrFail();
 
         $correctAnswer = $card->vocabulary->getWordForLang($request->target_lang);
-        $userAnswer    = $request->answer ?? '';
+        $userAnswer = $request->answer ?? '';
 
         $isCorrect = match ($request->mode) {
             'multiple_choice' => mb_strtolower(trim($userAnswer)) === mb_strtolower(trim($correctAnswer ?? '')),
-            'free_text'       => $this->levenshtein->isAcceptable($userAnswer, $correctAnswer ?? ''),
-            default           => false,
+            'free_text' => $this->levenshtein->isAcceptable($userAnswer, $correctAnswer ?? ''),
+            default => false,
         };
 
         $drawerBefore = $card->drawer;
-        $drawerAfter  = $this->leitner->moveCard($card, $isCorrect);
+        $drawerAfter = $this->leitner->moveCard($card, $isCorrect);
 
         $session->results()->create([
             'flash_card_id' => $card->id,
-            'was_correct'   => $isCorrect,
-            'answer_given'  => $userAnswer,
+            'was_correct' => $isCorrect,
+            'answer_given' => $userAnswer,
             'drawer_before' => $drawerBefore,
-            'drawer_after'  => $drawerAfter,
+            'drawer_after' => $drawerAfter,
         ]);
 
         if ($isCorrect) {
@@ -205,9 +206,9 @@ class TrainingSessionController extends Controller
         }
 
         return redirect()->route('child.training.show', $session->id)->with([
-            'last_answer_correct'  => $isCorrect,
-            'last_correct_answer'  => $correctAnswer,
-            'last_answer_given'    => $userAnswer,
+            'last_answer_correct' => $isCorrect,
+            'last_correct_answer' => $correctAnswer,
+            'last_answer_given' => $userAnswer,
         ]);
     }
 
@@ -216,6 +217,7 @@ class TrainingSessionController extends Controller
         $childId = $request->session()->get('child_id');
         $request->validate(['mode' => ['required', 'string', 'in:multiple_choice,free_text,dictation']]);
         $this->leitner->resetToDrawer1($childId, $request->mode);
+
         return back()->with('success', 'Karteikasten zurückgesetzt.');
     }
 
@@ -229,7 +231,7 @@ class TrainingSessionController extends Controller
 
         $request->validate(['flash_card_id' => ['required', 'integer']]);
 
-        $key     = "training_skipped_{$session->id}";
+        $key = "training_skipped_{$session->id}";
         $skipped = $request->session()->get($key, []);
         $skipped[] = (int) $request->flash_card_id;
         $request->session()->put($key, array_unique($skipped));
@@ -251,7 +253,7 @@ class TrainingSessionController extends Controller
             // Credit media time
             $credited = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
             $session->update([
-                'media_time_earned_gaming'  => $credited['gaming'],
+                'media_time_earned_gaming' => $credited['gaming'],
                 'media_time_earned_youtube' => $credited['youtube'],
             ]);
         }
@@ -271,12 +273,12 @@ class TrainingSessionController extends Controller
 
         return Inertia::render('Training/Summary', [
             'session' => [
-                'id'                         => $session->id,
-                'cards_correct'              => $session->cards_correct,
-                'cards_wrong'                => $session->cards_wrong,
-                'duration_minutes'           => $session->getDurationMinutes(),
-                'media_time_earned_gaming'   => $session->media_time_earned_gaming,
-                'media_time_earned_youtube'  => $session->media_time_earned_youtube,
+                'id' => $session->id,
+                'cards_correct' => $session->cards_correct,
+                'cards_wrong' => $session->cards_wrong,
+                'duration_minutes' => $session->getDurationMinutes(),
+                'media_time_earned_gaming' => $session->media_time_earned_gaming,
+                'media_time_earned_youtube' => $session->media_time_earned_youtube,
             ],
         ]);
     }

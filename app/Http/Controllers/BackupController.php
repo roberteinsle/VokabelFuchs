@@ -19,71 +19,71 @@ class BackupController extends Controller
         $user = $request->user();
 
         $data = [
-            'version'     => '1.0',
+            'version' => '1.0',
             'exported_at' => now()->toIso8601String(),
-            'user'        => [
-                'name'  => $user->name,
+            'user' => [
+                'name' => $user->name,
                 'email' => $user->email,
             ],
             'media_time_rules' => $user->mediaTimeRule ? [
-                'minutes_learn_per_gaming'  => $user->mediaTimeRule->minutes_learn_per_gaming,
+                'minutes_learn_per_gaming' => $user->mediaTimeRule->minutes_learn_per_gaming,
                 'minutes_learn_per_youtube' => $user->mediaTimeRule->minutes_learn_per_youtube,
-                'daily_cap_gaming'          => $user->mediaTimeRule->daily_cap_gaming,
-                'daily_cap_youtube'         => $user->mediaTimeRule->daily_cap_youtube,
-                'min_learn_for_unlock'      => $user->mediaTimeRule->min_learn_for_unlock,
+                'daily_cap_gaming' => $user->mediaTimeRule->daily_cap_gaming,
+                'daily_cap_youtube' => $user->mediaTimeRule->daily_cap_youtube,
+                'min_learn_for_unlock' => $user->mediaTimeRule->min_learn_for_unlock,
             ] : null,
             'vocabulary_lists' => $user->vocabularyLists()
                 ->with(['tags', 'vocabularies.tags'])
                 ->get()
                 ->map(fn ($list) => [
-                    'name'          => $list->name,
+                    'name' => $list->name,
                     'language_pair' => $list->language_pair,
-                    'description'   => $list->description,
-                    'tags'          => $list->tags->pluck('name'),
-                    'vocabularies'  => $list->vocabularies->map(fn ($v) => [
-                        'word_de'     => $v->word_de,
-                        'word_en'     => $v->word_en,
-                        'word_fr'     => $v->word_fr,
+                    'description' => $list->description,
+                    'tags' => $list->tags->pluck('name'),
+                    'vocabularies' => $list->vocabularies->map(fn ($v) => [
+                        'word_de' => $v->word_de,
+                        'word_en' => $v->word_en,
+                        'word_fr' => $v->word_fr,
                         'sentence_de' => $v->sentence_de,
                         'sentence_en' => $v->sentence_en,
                         'sentence_fr' => $v->sentence_fr,
-                        'is_active'   => $v->is_active,
-                        'tags'        => $v->tags->pluck('name'),
+                        'is_active' => $v->is_active,
+                        'tags' => $v->tags->pluck('name'),
                     ]),
                 ]),
             'children' => $user->children()
                 ->with(['tags.vocabularyList', 'flashCards.vocabulary.vocabularyList', 'flashCards.vocabulary.tags'])
                 ->get()
                 ->map(fn ($child) => [
-                    'name'               => $child->name,
-                    'pin'                => $child->pin,
-                    'is_active'          => $child->is_active,
-                    'assigned_clusters'  => $child->tags->map(fn ($tag) => [
+                    'name' => $child->name,
+                    'pin' => $child->pin,
+                    'is_active' => $child->is_active,
+                    'assigned_clusters' => $child->tags->map(fn ($tag) => [
                         'list' => $tag->vocabularyList->name,
-                        'tag'  => $tag->name,
+                        'tag' => $tag->name,
                     ]),
                     'flash_cards' => $child->flashCards
                         ->filter(fn ($c) => $c->vocabulary?->vocabularyList !== null)
                         ->map(fn ($c) => [
-                            'list'             => $c->vocabulary->vocabularyList->name,
-                            'word_de'          => $c->vocabulary->word_de,
-                            'word_en'          => $c->vocabulary->word_en,
-                            'word_fr'          => $c->vocabulary->word_fr,
-                            'clusters'         => $c->vocabulary->tags->pluck('name'),
-                            'drawer'           => $c->drawer,
+                            'list' => $c->vocabulary->vocabularyList->name,
+                            'word_de' => $c->vocabulary->word_de,
+                            'word_en' => $c->vocabulary->word_en,
+                            'word_fr' => $c->vocabulary->word_fr,
+                            'clusters' => $c->vocabulary->tags->pluck('name'),
+                            'drawer' => $c->drawer,
                             'next_review_date' => $c->next_review_date,
-                            'streak_count'     => $c->streak_count,
+                            'streak_count' => $c->streak_count,
                         ])
                         ->values(),
                 ]),
         ];
 
-        $json     = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $filename = 'vokabelfuchs-backup-' . now()->format('Y-m-d') . '.json';
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $filename = 'vokabelfuchs-backup-'.now()->format('Y-m-d').'.json';
 
         return response($json, 200, [
-            'Content-Type'        => 'application/json',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
@@ -123,7 +123,7 @@ class BackupController extends Controller
             // Tags
             $tagMap = [];
             foreach ($listData['tags'] ?? [] as $tagName) {
-                $tag            = Tag::firstOrCreate(
+                $tag = Tag::firstOrCreate(
                     ['name' => $tagName, 'vocabulary_list_id' => $list->id],
                     ['parent_id' => $user->id]
                 );
@@ -135,12 +135,12 @@ class BackupController extends Controller
                 $vocab = Vocabulary::firstOrCreate(
                     ['word_de' => $vd['word_de'], 'parent_id' => $user->id, 'vocabulary_list_id' => $list->id],
                     [
-                        'word_en'     => $vd['word_en'] ?? null,
-                        'word_fr'     => $vd['word_fr'] ?? null,
+                        'word_en' => $vd['word_en'] ?? null,
+                        'word_fr' => $vd['word_fr'] ?? null,
                         'sentence_de' => $vd['sentence_de'] ?? null,
                         'sentence_en' => $vd['sentence_en'] ?? null,
                         'sentence_fr' => $vd['sentence_fr'] ?? null,
-                        'is_active'   => $vd['is_active'] ?? true,
+                        'is_active' => $vd['is_active'] ?? true,
                     ]
                 );
 
@@ -165,29 +165,37 @@ class BackupController extends Controller
             $clusterIds = [];
             foreach ($childData['assigned_clusters'] ?? [] as $a) {
                 $list = $listMap[$a['list']] ?? null;
-                if (! $list) continue;
+                if (! $list) {
+                    continue;
+                }
                 $tag = Tag::where('name', $a['tag'])->where('vocabulary_list_id', $list->id)->first();
-                if ($tag) $clusterIds[] = $tag->id;
+                if ($tag) {
+                    $clusterIds[] = $tag->id;
+                }
             }
             if (! empty($clusterIds)) {
                 $child->tags()->syncWithoutDetaching($clusterIds);
             }
 
             foreach ($childData['flash_cards'] ?? [] as $cd) {
-                $list  = $listMap[$cd['list']] ?? null;
-                if (! $list) continue;
+                $list = $listMap[$cd['list']] ?? null;
+                if (! $list) {
+                    continue;
+                }
                 $vocab = Vocabulary::where('word_de', $cd['word_de'])
                     ->where('vocabulary_list_id', $list->id)
                     ->where('parent_id', $user->id)
                     ->first();
-                if (! $vocab) continue;
+                if (! $vocab) {
+                    continue;
+                }
 
                 FlashCard::firstOrCreate(
                     ['vocabulary_id' => $vocab->id, 'child_id' => $child->id],
                     [
-                        'drawer'           => $cd['drawer'],
+                        'drawer' => $cd['drawer'],
                         'next_review_date' => $cd['next_review_date'],
-                        'streak_count'     => $cd['streak_count'] ?? 0,
+                        'streak_count' => $cd['streak_count'] ?? 0,
                     ]
                 );
             }

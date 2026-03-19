@@ -6,7 +6,6 @@ use App\Models\Child;
 use App\Models\FlashCard;
 use App\Models\Tag;
 use App\Models\TrainingSession;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,7 +27,7 @@ class StatisticsController extends Controller
     public function ownStats(Request $request): Response
     {
         $childId = $request->session()->get('child_id');
-        $child   = Child::findOrFail($childId);
+        $child = Child::findOrFail($childId);
 
         return Inertia::render('Statistics/OwnStats', [
             'child' => $child->only('id', 'name'),
@@ -59,24 +58,24 @@ class StatisticsController extends Controller
             ->map(fn ($items) => $items->pluck('count', 'drawer')->toArray())
             ->toArray();
 
-        $totalCards    = array_sum($drawerCounts);
+        $totalCards = array_sum($drawerCounts);
         $masteredCards = $drawerCounts[5] ?? 0;
 
         $totalMinutes = $sessions->sum(fn ($s) => $s->getDurationMinutes());
         $totalCorrect = $sessions->sum('cards_correct');
-        $totalWrong   = $sessions->sum('cards_wrong');
+        $totalWrong = $sessions->sum('cards_wrong');
         $totalAnswers = $totalCorrect + $totalWrong;
 
         // Training log (most recent 30 sessions)
         $trainingLog = $sessions->take(30)->map(fn ($s) => [
-            'date'        => $s->ended_at->format('d.m.Y'),
-            'time'        => $s->ended_at->format('H:i'),
-            'minutes'     => $s->getDurationMinutes(),
-            'correct'     => $s->cards_correct,
-            'wrong'       => $s->cards_wrong,
-            'cluster'     => $s->tag?->name,
-            'fach'        => $s->tag?->vocabularyList?->name,
-            'mode'        => $s->training_mode,
+            'date' => $s->ended_at->format('d.m.Y'),
+            'time' => $s->ended_at->format('H:i'),
+            'minutes' => $s->getDurationMinutes(),
+            'correct' => $s->cards_correct,
+            'wrong' => $s->cards_wrong,
+            'cluster' => $s->tag?->name,
+            'fach' => $s->tag?->vocabularyList?->name,
+            'mode' => $s->training_mode,
         ]);
 
         // Per-cluster statistics
@@ -90,40 +89,40 @@ class StatisticsController extends Controller
                     ->get();
 
                 $correct = $tagSessions->sum('cards_correct');
-                $wrong   = $tagSessions->sum('cards_wrong');
-                $total   = $correct + $wrong;
+                $wrong = $tagSessions->sum('cards_wrong');
+                $total = $correct + $wrong;
 
                 $cardCount = FlashCard::where('child_id', $childId)
                     ->whereHas('vocabulary.tags', fn ($q) => $q->where('tags.id', $tag->id))
                     ->count();
 
                 return [
-                    'tag_id'       => $tag->id,
-                    'tag_name'     => $tag->name,
-                    'fach_name'    => $tag->vocabularyList?->name,
-                    'sessions'     => $tagSessions->count(),
-                    'accuracy'     => $total > 0 ? round(($correct / $total) * 100) : null,
-                    'card_count'   => $cardCount,
+                    'tag_id' => $tag->id,
+                    'tag_name' => $tag->name,
+                    'fach_name' => $tag->vocabularyList?->name,
+                    'sessions' => $tagSessions->count(),
+                    'accuracy' => $total > 0 ? round(($correct / $total) * 100) : null,
+                    'card_count' => $cardCount,
                     'last_trained' => $tagSessions->max('ended_at')?->format('d.m.Y'),
                 ];
             });
 
         return [
-            'drawer_counts'         => $drawerCounts,
+            'drawer_counts' => $drawerCounts,
             'drawer_counts_by_mode' => $drawerCountsByMode,
-            'total_cards'           => $totalCards,
-            'mastered_cards'   => $masteredCards,
-            'total_minutes'    => $totalMinutes,
+            'total_cards' => $totalCards,
+            'mastered_cards' => $masteredCards,
+            'total_minutes' => $totalMinutes,
             'accuracy_percent' => $totalAnswers > 0 ? round(($totalCorrect / $totalAnswers) * 100) : 0,
-            'sessions_count'   => $sessions->count(),
-            'recent_sessions'  => $sessions->take(7)->map(fn ($s) => [
-                'date'    => $s->ended_at->format('d.m.'),
+            'sessions_count' => $sessions->count(),
+            'recent_sessions' => $sessions->take(7)->map(fn ($s) => [
+                'date' => $s->ended_at->format('d.m.'),
                 'minutes' => $s->getDurationMinutes(),
                 'correct' => $s->cards_correct,
-                'wrong'   => $s->cards_wrong,
+                'wrong' => $s->cards_wrong,
             ]),
-            'training_log'   => $trainingLog,
-            'cluster_stats'  => $clusterStats,
+            'training_log' => $trainingLog,
+            'cluster_stats' => $clusterStats,
         ];
     }
 }

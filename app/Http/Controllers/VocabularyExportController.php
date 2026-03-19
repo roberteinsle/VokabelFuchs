@@ -24,7 +24,7 @@ class VocabularyExportController extends Controller
             ->orderBy('word_de')
             ->get();
 
-        $filename = Str::slug($vocabularyList->name) . '.csv';
+        $filename = Str::slug($vocabularyList->name).'.csv';
 
         return response()->streamDownload(function () use ($vocabularies, $targetField, $targetLabel) {
             $handle = fopen('php://output', 'w');
