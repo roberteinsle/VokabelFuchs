@@ -18,9 +18,14 @@ interface Props {
     due_count: number;
     balance_gaming: number;
     balance_youtube: number;
+    daily_cap_gaming: number;
+    daily_cap_youtube: number;
+    today_earned_gaming: number;
+    today_earned_youtube: number;
+    current_streak: number;
 }
 
-export default function ChildHome({ child, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube }: Props) {
+export default function ChildHome({ child, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube, daily_cap_gaming, daily_cap_youtube, today_earned_gaming, today_earned_youtube, current_streak }: Props) {
     const handleReset = (mode: string, label: string) => {
         if (!confirm(`Alle Karten im Modus „${label}" wirklich auf Fach 1 zurücksetzen?`)) return;
         router.post(route('child.flash-cards.reset'), { mode });
@@ -44,20 +49,53 @@ export default function ChildHome({ child, mode_stats, mode_meta, due_count, bal
                     <p className="text-gray-500 mt-1">Bereit zum Lernen?</p>
                 </div>
 
-                {/* Media time balance */}
+                {/* Streak */}
+                {current_streak > 0 && (
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                        <span className="text-2xl">🔥</span>
+                        <div>
+                            <p className="font-semibold text-orange-700">{current_streak} Tage in Folge!</p>
+                            <p className="text-xs text-orange-500">Weiter so!</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Media time balance with progress bars */}
                 <div className="grid grid-cols-2 gap-3">
                     <Card className="bg-purple-50 border-purple-200">
-                        <CardContent className="pt-4 text-center">
-                            <div className="text-3xl mb-1">🎮</div>
-                            <div className="text-2xl font-bold text-purple-700">{balance_gaming}</div>
-                            <div className="text-xs text-purple-600">Minuten Gaming</div>
+                        <CardContent className="pt-4">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm font-medium text-purple-700">🎮 Gaming</span>
+                                <span className="text-xs text-purple-600">{today_earned_gaming} / {daily_cap_gaming} min</span>
+                            </div>
+                            <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-purple-500 rounded-full transition-all"
+                                    style={{ width: `${Math.min(100, (today_earned_gaming / (daily_cap_gaming || 1)) * 100)}%` }}
+                                />
+                            </div>
+                            <p className="text-2xl font-bold text-purple-700 mt-2">{balance_gaming} <span className="text-sm font-normal">min Guthaben</span></p>
+                            {today_earned_gaming >= daily_cap_gaming && daily_cap_gaming > 0 && (
+                                <p className="text-xs text-purple-500 mt-1">Voll! 🎉</p>
+                            )}
                         </CardContent>
                     </Card>
                     <Card className="bg-red-50 border-red-200">
-                        <CardContent className="pt-4 text-center">
-                            <div className="text-3xl mb-1">📺</div>
-                            <div className="text-2xl font-bold text-red-700">{balance_youtube}</div>
-                            <div className="text-xs text-red-600">Minuten YouTube</div>
+                        <CardContent className="pt-4">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm font-medium text-red-700">📺 YouTube</span>
+                                <span className="text-xs text-red-600">{today_earned_youtube} / {daily_cap_youtube} min</span>
+                            </div>
+                            <div className="h-2 bg-red-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-red-500 rounded-full transition-all"
+                                    style={{ width: `${Math.min(100, (today_earned_youtube / (daily_cap_youtube || 1)) * 100)}%` }}
+                                />
+                            </div>
+                            <p className="text-2xl font-bold text-red-700 mt-2">{balance_youtube} <span className="text-sm font-normal">min Guthaben</span></p>
+                            {today_earned_youtube >= daily_cap_youtube && daily_cap_youtube > 0 && (
+                                <p className="text-xs text-red-500 mt-1">Voll! 🎉</p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

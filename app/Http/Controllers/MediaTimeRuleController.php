@@ -20,6 +20,14 @@ class MediaTimeRuleController extends Controller
             'daily_cap_gaming' => 60,
             'daily_cap_youtube' => 45,
             'min_learn_for_unlock' => 5,
+            'base_minutes_per_correct' => 0.50,
+            'multiplier_multiple_choice' => 1.00,
+            'multiplier_free_text' => 1.50,
+            'multiplier_dictation' => 2.00,
+            'gaming_exchange_rate' => 1.50,
+            'youtube_exchange_rate' => 1.00,
+            'streak_bonus_days' => 7,
+            'streak_bonus_minutes' => 15,
         ]);
 
         return Inertia::render('Parent/MediaTimeRules', ['rule' => $rule]);
@@ -35,6 +43,14 @@ class MediaTimeRuleController extends Controller
             'daily_cap_gaming' => ['required', 'integer', 'min:0', 'max:480'],
             'daily_cap_youtube' => ['required', 'integer', 'min:0', 'max:480'],
             'min_learn_for_unlock' => ['required', 'integer', 'min:0', 'max:60'],
+            'base_minutes_per_correct' => ['required', 'numeric', 'min:0.1', 'max:10'],
+            'multiplier_multiple_choice' => ['required', 'numeric', 'min:0.1', 'max:5'],
+            'multiplier_free_text' => ['required', 'numeric', 'min:0.1', 'max:5'],
+            'multiplier_dictation' => ['required', 'numeric', 'min:0.1', 'max:5'],
+            'gaming_exchange_rate' => ['required', 'numeric', 'min:0.1', 'max:5'],
+            'youtube_exchange_rate' => ['required', 'numeric', 'min:0.1', 'max:5'],
+            'streak_bonus_days' => ['required', 'integer', 'min:1', 'max:365'],
+            'streak_bonus_minutes' => ['required', 'integer', 'min:0', 'max:120'],
         ]);
 
         MediaTimeRule::updateOrCreate(

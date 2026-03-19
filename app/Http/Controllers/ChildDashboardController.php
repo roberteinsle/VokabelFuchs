@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MediaTimeType;
 use App\Models\Child;
+use App\Models\MediaTimeRule;
 use App\Services\LeitnerService;
+use App\Services\MediaTimeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ChildDashboardController extends Controller
 {
-    public function __construct(private LeitnerService $leitner) {}
+    public function __construct(
+        private LeitnerService $leitner,
+        private MediaTimeService $mediaTime,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -25,6 +31,13 @@ class ChildDashboardController extends Controller
             'dictation' => ['label' => 'Hören & Schreiben', 'due' => $this->leitner->getDueCards($child->id, null, 'dictation')->count()],
         ];
 
+        $rule = MediaTimeRule::where('parent_id', $child->parent_id)->first();
+        $dailyCapGaming = $rule?->daily_cap_gaming ?? 60;
+        $dailyCapYoutube = $rule?->daily_cap_youtube ?? 45;
+
+        $todayEarnedGaming = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::GAMING);
+        $todayEarnedYoutube = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::YOUTUBE);
+
         return Inertia::render('Child/Home', [
             'child' => $child->only('id', 'name', 'username', 'language_pair'),
             'mode_stats' => $modeStats,
@@ -32,6 +45,11 @@ class ChildDashboardController extends Controller
             'due_count' => $dueCount,
             'balance_gaming' => $child->media_time_balance_gaming,
             'balance_youtube' => $child->media_time_balance_youtube,
+            'daily_cap_gaming' => $dailyCapGaming,
+            'daily_cap_youtube' => $dailyCapYoutube,
+            'today_earned_gaming' => $todayEarnedGaming,
+            'today_earned_youtube' => $todayEarnedYoutube,
+            'current_streak' => $child->current_streak ?? 0,
         ]);
     }
 }

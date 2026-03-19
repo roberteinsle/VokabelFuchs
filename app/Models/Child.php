@@ -21,6 +21,8 @@ class Child extends Model
         'media_time_balance_gaming',
         'media_time_balance_youtube',
         'is_active',
+        'current_streak',
+        'last_trained_date',
     ];
 
     protected $hidden = ['pin'];
@@ -33,6 +35,8 @@ class Child extends Model
             'media_time_balance_youtube' => 'integer',
             'is_active' => 'boolean',
             'pin' => 'hashed',
+            'current_streak' => 'integer',
+            'last_trained_date' => 'date',
         ];
     }
 

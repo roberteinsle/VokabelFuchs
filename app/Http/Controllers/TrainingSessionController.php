@@ -124,11 +124,15 @@ class TrainingSessionController extends Controller
         if ($remaining->isEmpty()) {
             if (! $session->isFinished()) {
                 $session->update(['ended_at' => now()]);
-                $credited = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
+                $freshSession = $session->fresh()->load('child');
+                $credited = $this->mediaTime->creditFromSession($freshSession);
                 $session->update([
                     'media_time_earned_gaming' => $credited['gaming'],
                     'media_time_earned_youtube' => $credited['youtube'],
                 ]);
+
+                // Update streak
+                $this->mediaTime->updateStreak($freshSession->child);
             }
 
             return redirect()->route('child.training.summary', $session->id);
@@ -157,6 +161,7 @@ class TrainingSessionController extends Controller
                 'correct_answer' => session('last_correct_answer'),
                 'given_answer' => session('last_answer_given'),
             ] : null,
+            'media_per_answer' => session('media_per_answer'),
         ]);
     }
 
@@ -205,10 +210,16 @@ class TrainingSessionController extends Controller
             $session->increment('cards_wrong');
         }
 
+        $mediaPerAnswer = null;
+        if ($isCorrect) {
+            $mediaPerAnswer = $this->mediaTime->previewPerAnswer($request->mode, $session->child->parent_id);
+        }
+
         return redirect()->route('child.training.show', $session->id)->with([
             'last_answer_correct' => $isCorrect,
             'last_correct_answer' => $correctAnswer,
             'last_answer_given' => $userAnswer,
+            'media_per_answer' => $mediaPerAnswer,
         ]);
     }
 
@@ -256,6 +267,9 @@ class TrainingSessionController extends Controller
                 'media_time_earned_gaming' => $credited['gaming'],
                 'media_time_earned_youtube' => $credited['youtube'],
             ]);
+
+            // Update streak
+            $this->mediaTime->updateStreak($session->child);
         }
 
         return redirect()->route('child.training.summary', $session->id);

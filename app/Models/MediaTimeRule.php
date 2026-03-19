@@ -16,6 +16,14 @@ class MediaTimeRule extends Model
         'daily_cap_gaming',
         'daily_cap_youtube',
         'min_learn_for_unlock',
+        'base_minutes_per_correct',
+        'multiplier_multiple_choice',
+        'multiplier_free_text',
+        'multiplier_dictation',
+        'gaming_exchange_rate',
+        'youtube_exchange_rate',
+        'streak_bonus_days',
+        'streak_bonus_minutes',
     ];
 
     protected function casts(): array
@@ -28,6 +36,14 @@ class MediaTimeRule extends Model
             'daily_cap_gaming' => 'integer',
             'daily_cap_youtube' => 'integer',
             'min_learn_for_unlock' => 'integer',
+            'base_minutes_per_correct' => 'decimal:2',
+            'multiplier_multiple_choice' => 'decimal:2',
+            'multiplier_free_text' => 'decimal:2',
+            'multiplier_dictation' => 'decimal:2',
+            'gaming_exchange_rate' => 'decimal:2',
+            'youtube_exchange_rate' => 'decimal:2',
+            'streak_bonus_days' => 'integer',
+            'streak_bonus_minutes' => 'integer',
         ];
     }
 

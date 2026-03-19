@@ -13,6 +13,8 @@ export interface Child {
     media_time_balance_youtube: number;
     is_active: boolean;
     tags_count?: number;
+    current_streak?: number;
+    last_trained_date?: string | null;
 }
 
 export interface Tag {
@@ -95,6 +97,14 @@ export interface MediaTimeRule {
     daily_cap_gaming: number;
     daily_cap_youtube: number;
     min_learn_for_unlock: number;
+    base_minutes_per_correct: number;
+    multiplier_multiple_choice: number;
+    multiplier_free_text: number;
+    multiplier_dictation: number;
+    gaming_exchange_rate: number;
+    youtube_exchange_rate: number;
+    streak_bonus_days: number;
+    streak_bonus_minutes: number;
 }
 
 export interface DrawerStats {
