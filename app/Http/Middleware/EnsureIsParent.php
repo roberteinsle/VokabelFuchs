@@ -11,7 +11,7 @@ class EnsureIsParent
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()) {
-            return redirect()->route('login');
+            return redirect()->route('profiles.index');
         }
 
         $user = $request->user();

@@ -3,7 +3,6 @@
 use App\Http\Controllers\ChildController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\FlashCardController;
-use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MediaTimeController;
 use App\Http\Controllers\MediaTimeRuleController;
 use App\Http\Controllers\ParentDashboardController;
@@ -20,16 +19,12 @@ use App\Http\Controllers\VocabularyController;
 use App\Http\Controllers\VocabularyListController;
 use Illuminate\Support\Facades\Route;
 
-// === LANDING PAGE ===
-Route::get('/', [LandingController::class, 'index'])->name('home');
-
-// === PROFILE SELECTION (after master login) ===
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profiles', [ProfilesController::class, 'index'])->name('profiles.index');
-    Route::get('/profiles/{type}/{id}/pin', [ProfilesController::class, 'showPin'])->name('profiles.pin');
-    Route::post('/profiles/unlock', [ProfilesController::class, 'unlock'])->name('profiles.unlock');
-    Route::post('/profiles/lock', [ProfilesController::class, 'lock'])->name('profiles.lock');
-});
+// === PROFILE SELECTION (public — no login required) ===
+Route::get('/', [ProfilesController::class, 'index'])->name('profiles.index');
+Route::get('/profiles', fn() => redirect()->route('profiles.index'));
+Route::get('/profiles/{type}/{id}/pin', [ProfilesController::class, 'showPin'])->name('profiles.pin');
+Route::post('/profiles/unlock', [ProfilesController::class, 'unlock'])->name('profiles.unlock');
+Route::post('/profiles/lock', [ProfilesController::class, 'lock'])->name('profiles.lock');
 
 // === PARENT ROUTES ===
 Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('parent.')->group(function () {
