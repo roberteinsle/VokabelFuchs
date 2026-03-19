@@ -76,14 +76,7 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
                     </div>
                 )}
 
-                {hasUsers && (
-                    <Link
-                        href={route('register')}
-                        className="mt-16 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        Neues Konto registrieren
-                    </Link>
-                )}
+                <p className="mt-16 text-xs text-gray-300">V. 1.0.1</p>
             </div>
         </>
     );
