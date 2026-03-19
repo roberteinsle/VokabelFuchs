@@ -60,7 +60,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     </div>
                 </nav>
 
-                <p className="px-6 pb-4 text-xs text-gray-300">V. 1.0.2</p>
+                <p className="px-6 pb-4 text-xs text-gray-300">V. 1.0.3</p>
             </aside>
 
             {/* Main content */}
