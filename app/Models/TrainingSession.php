@@ -59,7 +59,7 @@ class TrainingSession extends Model
             return 0;
         }
 
-        return (int) $this->started_at->diffInMinutes($this->ended_at);
+        return (int) ceil($this->started_at->diffInSeconds($this->ended_at) / 60);
     }
 
     public function isFinished(): bool
