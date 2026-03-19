@@ -76,7 +76,18 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
                     </div>
                 )}
 
-                <p className="mt-16 text-xs text-gray-300">V. 1.1.0</p>
+                {hasUsers && (
+                    <Link
+                        href={route('profiles.lock')}
+                        method="post"
+                        as="button"
+                        className="mt-12 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        Abmelden
+                    </Link>
+                )}
+
+                <p className="mt-4 text-xs text-gray-300">V. 1.1.0</p>
             </div>
         </>
     );

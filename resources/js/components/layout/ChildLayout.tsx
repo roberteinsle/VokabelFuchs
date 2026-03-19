@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart2, BookOpen, Clock, Home, UserRound } from 'lucide-react';
+import { BarChart2, BookOpen, Clock, Home, Power, UserRound } from 'lucide-react';
 import { PropsWithChildren } from 'react';
 
 export default function ChildLayout({ children }: PropsWithChildren) {
@@ -20,15 +20,26 @@ export default function ChildLayout({ children }: PropsWithChildren) {
             <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
                 <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
                     <span className="text-base font-bold text-blue-600">VokabelFuchs</span>
-                    <Link
-                        href={route('profiles.lock')}
-                        method="post"
-                        as="button"
-                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                        <UserRound className="w-4 h-4" />
-                        Profil wechseln
-                    </Link>
+                    <div className="flex items-center gap-1">
+                        <Link
+                            href={route('profiles.lock')}
+                            method="post"
+                            as="button"
+                            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            <UserRound className="w-4 h-4" />
+                            Profil wechseln
+                        </Link>
+                        <Link
+                            href={route('logout')}
+                            method="post"
+                            as="button"
+                            title="Abmelden"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                            <Power className="w-4 h-4" />
+                        </Link>
+                    </div>
                 </div>
             </header>
 
