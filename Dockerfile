@@ -35,7 +35,7 @@ RUN php artisan config:cache 2>/dev/null || true \
     && php artisan view:cache 2>/dev/null || true
 
 # Storage permissions
-RUN mkdir -p storage/logs bootstrap/cache \
+RUN mkdir -p storage/logs storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
