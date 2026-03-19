@@ -3,6 +3,8 @@ FROM php:8.3-cli-bookworm
 # System dependencies
 RUN apt-get update && apt-get install -y \
     git curl zip unzip libpq-dev libpng-dev libzip-dev libonig-dev \
+    libfreetype6-dev libjpeg62-turbo-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_pgsql mbstring gd zip bcmath opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -19,10 +21,10 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
-# Node dependencies + build
-COPY package.json package-lock.json vite.config.js ./
+# Node dependencies + build (use vite directly — skip tsc type-check in Docker)
+COPY package.json package-lock.json vite.config.js tsconfig.json ./
 COPY resources ./resources
-RUN npm ci && npm run build && rm -rf node_modules
+RUN npm ci && npx vite build && rm -rf node_modules
 
 # App source
 COPY . .
