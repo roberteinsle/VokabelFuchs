@@ -29,10 +29,12 @@ interface Stats {
 interface Props {
     child: { id: number; name: string };
     stats: Stats;
+    balance_gaming?: number;
+    balance_youtube?: number;
     isParentView?: boolean;
 }
 
-function StatsContent({ child, stats }: Props) {
+function StatsContent({ child, stats, balance_gaming, balance_youtube }: Props) {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Fortschritt: {child.name}</h1>
@@ -63,6 +65,36 @@ function StatsContent({ child, stats }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Media time balance — shown in parent view */}
+            {balance_gaming !== undefined && (
+                <Card className="border-amber-200 bg-amber-50">
+                    <CardContent className="pt-4">
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
+                            Medienzeit-Guthaben (einlösbar für Gaming oder YouTube)
+                        </p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🎮</span>
+                                <div>
+                                    <p className="text-xl font-bold text-purple-700">{balance_gaming} min</p>
+                                    <p className="text-xs text-gray-500">Gaming-Guthaben</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">📺</span>
+                                <div>
+                                    <p className="text-xl font-bold text-red-600">{balance_youtube} min</p>
+                                    <p className="text-xs text-gray-500">YouTube-Guthaben</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-xs text-amber-600 mt-3">
+                            Das Kind kann sein Guthaben frei für Gaming oder YouTube einlösen.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Drawer distribution per mode */}
             <Card>

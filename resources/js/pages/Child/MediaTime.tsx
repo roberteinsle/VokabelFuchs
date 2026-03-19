@@ -25,23 +25,25 @@ export default function ChildMediaTime({ balance_gaming, balance_youtube, logs }
             <div className="space-y-6">
                 <h1 className="text-2xl font-bold">Mein Guthaben</h1>
 
-                {/* Balance cards */}
-                <div className="grid grid-cols-2 gap-4">
-                    <Card className="bg-purple-50 border-purple-200">
-                        <CardContent className="pt-6 text-center">
-                            <div className="text-4xl mb-2">🎮</div>
-                            <div className="text-3xl font-bold text-purple-700">{balance_gaming}</div>
-                            <div className="text-sm text-purple-600 mt-1">Minuten Gaming</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-red-50 border-red-200">
-                        <CardContent className="pt-6 text-center">
-                            <div className="text-4xl mb-2">📺</div>
-                            <div className="text-3xl font-bold text-red-700">{balance_youtube}</div>
-                            <div className="text-sm text-red-600 mt-1">Minuten YouTube</div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {/* Unified balance */}
+                <Card className="bg-gradient-to-br from-purple-50 to-red-50 border-purple-200">
+                    <CardContent className="pt-4">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Dein Guthaben</p>
+                        <div className="grid grid-cols-2 gap-6 text-center">
+                            <div>
+                                <div className="text-3xl mb-1">🎮</div>
+                                <div className="text-3xl font-bold text-purple-700">{balance_gaming}</div>
+                                <div className="text-xs text-purple-500 mt-0.5">min Gaming</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl mb-1">📺</div>
+                                <div className="text-3xl font-bold text-red-600">{balance_youtube}</div>
+                                <div className="text-xs text-red-400 mt-0.5">min YouTube</div>
+                            </div>
+                        </div>
+                        <p className="text-xs text-center text-gray-400 mt-3">Du kannst wählen, wofür du dein Guthaben einlöst.</p>
+                    </CardContent>
+                </Card>
 
                 {/* Redeem form */}
                 <Card>

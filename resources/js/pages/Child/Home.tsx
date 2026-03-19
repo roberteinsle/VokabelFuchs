@@ -60,45 +60,38 @@ export default function ChildHome({ child, mode_stats, mode_meta, due_count, bal
                     </div>
                 )}
 
-                {/* Media time balance with progress bars */}
-                <div className="grid grid-cols-2 gap-3">
-                    <Card className="bg-purple-50 border-purple-200">
-                        <CardContent className="pt-4">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-medium text-purple-700">🎮 Gaming</span>
-                                <span className="text-xs text-purple-600">{today_earned_gaming} / {daily_cap_gaming} min</span>
+                {/* Unified media time balance */}
+                <Card className="bg-gradient-to-br from-purple-50 to-red-50 border-purple-200">
+                    <CardContent className="pt-4 space-y-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dein Guthaben — du kannst wählen</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-sm font-medium text-purple-700">🎮 Gaming</span>
+                                    <span className="text-xs text-purple-500">{today_earned_gaming}/{daily_cap_gaming} min heute</span>
+                                </div>
+                                <div className="h-1.5 bg-purple-200 rounded-full overflow-hidden mb-1">
+                                    <div className="h-full bg-purple-500 rounded-full transition-all"
+                                        style={{ width: `${Math.min(100, (today_earned_gaming / (daily_cap_gaming || 1)) * 100)}%` }} />
+                                </div>
+                                <p className="text-2xl font-bold text-purple-700">{balance_gaming} <span className="text-sm font-normal">min</span></p>
+                                {today_earned_gaming >= daily_cap_gaming && daily_cap_gaming > 0 && <p className="text-xs text-purple-400">Tageslimit erreicht 🎉</p>}
                             </div>
-                            <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-purple-500 rounded-full transition-all"
-                                    style={{ width: `${Math.min(100, (today_earned_gaming / (daily_cap_gaming || 1)) * 100)}%` }}
-                                />
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-sm font-medium text-red-600">📺 YouTube</span>
+                                    <span className="text-xs text-red-400">{today_earned_youtube}/{daily_cap_youtube} min heute</span>
+                                </div>
+                                <div className="h-1.5 bg-red-200 rounded-full overflow-hidden mb-1">
+                                    <div className="h-full bg-red-500 rounded-full transition-all"
+                                        style={{ width: `${Math.min(100, (today_earned_youtube / (daily_cap_youtube || 1)) * 100)}%` }} />
+                                </div>
+                                <p className="text-2xl font-bold text-red-600">{balance_youtube} <span className="text-sm font-normal">min</span></p>
+                                {today_earned_youtube >= daily_cap_youtube && daily_cap_youtube > 0 && <p className="text-xs text-red-400">Tageslimit erreicht 🎉</p>}
                             </div>
-                            <p className="text-2xl font-bold text-purple-700 mt-2">{balance_gaming} <span className="text-sm font-normal">min Guthaben</span></p>
-                            {today_earned_gaming >= daily_cap_gaming && daily_cap_gaming > 0 && (
-                                <p className="text-xs text-purple-500 mt-1">Voll! 🎉</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-red-50 border-red-200">
-                        <CardContent className="pt-4">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-medium text-red-700">📺 YouTube</span>
-                                <span className="text-xs text-red-600">{today_earned_youtube} / {daily_cap_youtube} min</span>
-                            </div>
-                            <div className="h-2 bg-red-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-red-500 rounded-full transition-all"
-                                    style={{ width: `${Math.min(100, (today_earned_youtube / (daily_cap_youtube || 1)) * 100)}%` }}
-                                />
-                            </div>
-                            <p className="text-2xl font-bold text-red-700 mt-2">{balance_youtube} <span className="text-sm font-normal">min Guthaben</span></p>
-                            {today_earned_youtube >= daily_cap_youtube && daily_cap_youtube > 0 && (
-                                <p className="text-xs text-red-500 mt-1">Voll! 🎉</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Start training CTA */}
                 {due_count > 0 ? (
