@@ -151,7 +151,7 @@ export default function ParentDashboard({ child_stats, vocabulary_count, tag_cou
                                             <span>📺 {child.balance_youtube} min</span>
                                         </div>
                                         <Link
-                                            href={route('parent.children.statistics', child.id)}
+                                            href={route('parent.children.statistics', { childName: child.name })}
                                             className="text-blue-600 hover:underline"
                                         >
                                             Statistiken →

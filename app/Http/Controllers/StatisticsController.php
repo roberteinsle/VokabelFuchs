@@ -12,11 +12,11 @@ use Inertia\Response;
 
 class StatisticsController extends Controller
 {
-    public function child(Request $request, Child $child): Response
+    public function child(Request $request, string $childName): Response
     {
-        if ($child->parent_id !== $request->user()->id) {
-            abort(403);
-        }
+        $child = Child::where('parent_id', $request->user()->id)
+            ->where('name', $childName)
+            ->firstOrFail();
 
         return Inertia::render('Statistics/ChildProgress', [
             'child' => $child->only('id', 'name'),

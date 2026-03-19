@@ -32,7 +32,7 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
 
     // Children management
     Route::resource('children', ChildController::class);
-    Route::get('/children/{child}/statistics', [StatisticsController::class, 'child'])->name('children.statistics');
+    Route::get('/children/{childName}/statistics', [StatisticsController::class, 'child'])->name('children.statistics');
 
     // Vocabulary lists (Fächer)
     Route::resource('vocabulary-lists', VocabularyListController::class)

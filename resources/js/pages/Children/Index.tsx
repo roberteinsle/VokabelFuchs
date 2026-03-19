@@ -52,7 +52,7 @@ export default function ChildrenIndex({ children }: Props) {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <LinkButton variant="ghost" size="sm" href={route('parent.children.statistics', child.id)}>Statistiken</LinkButton>
+                                        <LinkButton variant="ghost" size="sm" href={route('parent.children.statistics', { childName: child.name })}>Statistiken</LinkButton>
                                         <LinkButton variant="ghost" size="sm" href={route('parent.children.edit', child.id)}>
                                             <Pencil className="w-4 h-4" />
                                         </LinkButton>
