@@ -69,7 +69,8 @@ class StatisticsController extends Controller
         // Training log (most recent 30 sessions)
         $trainingLog = $sessions->take(30)->map(fn ($s) => [
             'date' => $s->ended_at->format('d.m.Y'),
-            'time' => $s->ended_at->format('H:i'),
+            'start_time' => $s->started_at->format('H:i'),
+            'end_time' => $s->ended_at->format('H:i'),
             'minutes' => $s->getDurationMinutes(),
             'correct' => $s->cards_correct,
             'wrong' => $s->cards_wrong,
@@ -117,6 +118,8 @@ class StatisticsController extends Controller
             'sessions_count' => $sessions->count(),
             'recent_sessions' => $sessions->take(7)->map(fn ($s) => [
                 'date' => $s->ended_at->format('d.m.'),
+                'start_time' => $s->started_at->format('H:i'),
+                'end_time' => $s->ended_at->format('H:i'),
                 'minutes' => $s->getDurationMinutes(),
                 'correct' => $s->cards_correct,
                 'wrong' => $s->cards_wrong,

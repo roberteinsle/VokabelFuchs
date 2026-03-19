@@ -9,7 +9,7 @@ interface Stats {
     total_minutes: number;
     accuracy_percent: number;
     sessions_count: number;
-    recent_sessions: { date: string; minutes: number; correct: number; wrong: number }[];
+    recent_sessions: { date: string; start_time: string; end_time: string; minutes: number; correct: number; wrong: number }[];
 }
 
 interface Props {
@@ -79,11 +79,11 @@ export default function OwnStats({ child, stats }: Props) {
                         <CardContent>
                             <div className="space-y-2">
                                 {stats.recent_sessions.map((s, i) => (
-                                    <div key={i} className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600">{s.date}</span>
-                                        <span>{s.minutes} min</span>
-                                        <span className="text-green-600">✓{s.correct}</span>
-                                        <span className="text-red-500">✗{s.wrong}</span>
+                                    <div key={i} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 text-sm border-b last:border-0 pb-2 last:pb-0">
+                                        <span className="text-gray-600 whitespace-nowrap">{s.date}, {s.start_time} – {s.end_time}</span>
+                                        <span className="text-gray-500 whitespace-nowrap">{s.minutes} min</span>
+                                        <span className="text-green-600 whitespace-nowrap">✓ {s.correct}</span>
+                                        <span className="text-red-500 whitespace-nowrap">✗ {s.wrong}</span>
                                     </div>
                                 ))}
                             </div>
