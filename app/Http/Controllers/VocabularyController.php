@@ -168,7 +168,7 @@ class VocabularyController extends Controller
 
         $word = $vocabulary->word_de;
         $template = $request->user()->image_prompt
-            ?? 'Flat vector illustration of a {word}, simple and colorful, clean shapes, white background, child-friendly style';
+            ?? 'Flache Vektorillustration von einem {word}, einfach und farbenfroh, klare Formen, weißer Hintergrund, kinderfreundlicher Stil';
         $prompt = str_replace('{word}', $word, $template);
 
         $response = Http::timeout(30)->post(
