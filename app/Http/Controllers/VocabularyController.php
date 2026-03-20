@@ -166,7 +166,7 @@ class VocabularyController extends Controller
             return response()->json(['error' => 'Kein Google Cloud API-Key hinterlegt (siehe Profil → Sprachausgabe).'], 422);
         }
 
-        $word = $vocabulary->word_de;
+        $word = $vocabulary->word_en ?? $vocabulary->word_fr ?? $vocabulary->word_de;
         $template = $request->user()->image_prompt
             ?? 'Flat vector illustration of a {word}, simple and colorful, clean shapes, white background, child-friendly style, no text';
         $prompt = str_replace('{word}', $word, $template);

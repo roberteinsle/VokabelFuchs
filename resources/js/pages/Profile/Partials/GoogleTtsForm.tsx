@@ -98,7 +98,7 @@ export default function GoogleTtsForm({ hasKey, voices, allVoices, imagePrompt }
                     placeholder="Flat vector illustration of a {word}, simple and colorful..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                    <code className="bg-gray-100 px-1 rounded">{'{word}'}</code> wird durch das deutsche Wort ersetzt.
+                    <code className="bg-gray-100 px-1 rounded">{'{word}'}</code> wird durch das englische/fremdsprachige Wort ersetzt (Prompt am besten auf Englisch).
                 </p>
             </div>
 
