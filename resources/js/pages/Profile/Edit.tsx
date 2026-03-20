@@ -3,24 +3,19 @@ import AppLayout from '@/components/layout/AppLayout';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdatePinForm from './Partials/UpdatePinForm';
-import ElevenLabsForm from './Partials/ElevenLabsForm';
+import GoogleTtsForm from './Partials/GoogleTtsForm';
 import BackupForm from './Partials/BackupForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
-
-interface SavedVoice {
-    voice_id: string;
-    voice_name: string;
-}
 
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
     hasPin: boolean;
-    hasElevenLabsKey: boolean;
-    elevenLabsVoices: Record<string, SavedVoice>;
+    ttsSettings: { hasKey: boolean; voices: Record<string, string> };
+    ttsVoices: Record<string, Record<string, string[]>>;
 }
 
-export default function Edit({ mustVerifyEmail, status, hasPin, hasElevenLabsKey, elevenLabsVoices }: Props) {
+export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, ttsVoices }: Props) {
     return (
         <AppLayout>
             <Head title="Profil" />
@@ -41,7 +36,11 @@ export default function Edit({ mustVerifyEmail, status, hasPin, hasElevenLabsKey
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
-                    <ElevenLabsForm hasKey={hasElevenLabsKey} voices={elevenLabsVoices} />
+                    <GoogleTtsForm
+                        hasKey={ttsSettings.hasKey}
+                        voices={ttsSettings.voices}
+                        allVoices={ttsVoices}
+                    />
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">

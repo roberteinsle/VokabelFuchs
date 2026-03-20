@@ -24,11 +24,15 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'hasPin' => $user->hasPin(),
-            'hasElevenLabsKey' => ! empty($user->elevenlabs_api_key),
-            'elevenLabsVoices' => $user->elevenLabsVoices->keyBy('language')->map(fn ($v) => [
-                'voice_id' => $v->voice_id,
-                'voice_name' => $v->voice_name,
-            ]),
+            'ttsSettings' => [
+                'hasKey' => ! empty($user->google_tts_api_key),
+                'voices' => $user->google_tts_voices ?? [
+                    'de' => config('tts.default_voice_de'),
+                    'en' => config('tts.default_voice_en'),
+                    'fr' => config('tts.default_voice_fr'),
+                ],
+            ],
+            'ttsVoices' => config('tts.voices'),
         ]);
     }
 

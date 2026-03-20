@@ -178,18 +178,20 @@ class TrainingSessionController extends Controller
             'answer' => ['nullable', 'string', 'max:255'],
             'mode' => ['required', 'string'],
             'target_lang' => ['required', 'string', 'in:de,en,fr'],
+            'source_lang' => ['nullable', 'string', 'in:de,en,fr'],
         ]);
 
         $card = FlashCard::where('id', $request->flash_card_id)
             ->where('child_id', $childId)
             ->firstOrFail();
 
-        $correctAnswer = $card->vocabulary->getWordForLang($request->target_lang);
         $userAnswer = $request->answer ?? '';
+
+        $correctAnswer = $card->vocabulary->getWordForLang($request->target_lang);
 
         $isCorrect = match ($request->mode) {
             'multiple_choice' => mb_strtolower(trim($userAnswer)) === mb_strtolower(trim($correctAnswer ?? '')),
-            'free_text' => $this->levenshtein->isAcceptable($userAnswer, $correctAnswer ?? ''),
+            'free_text', 'dictation' => $this->levenshtein->isAcceptable($userAnswer, $correctAnswer ?? ''),
             default => false,
         };
 

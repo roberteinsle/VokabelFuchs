@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\Child;
-use App\Models\ElevenLabsVoice;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,14 +33,10 @@ class HandleInertiaRequests extends Middleware
         $childId = $request->session()->get('child_id');
         $child = $childId ? Child::find($childId) : null;
 
-        // ElevenLabs: check if parent has API key + configured voices
-        $ttsLanguages = [];
         $user = $request->user();
-        if ($user && $user->elevenlabs_api_key) {
-            $ttsLanguages = ElevenLabsVoice::where('parent_id', $user->id)
-                ->pluck('language')
-                ->toArray();
-        }
+        $ttsLanguages = $user && $user->google_tts_api_key
+            ? array_keys(config('tts.language_codes'))
+            : [];
 
         return [
             ...parent::share($request),
@@ -57,7 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
             ],
             'tts' => [
-                'elevenlabs_languages' => $ttsLanguages,
+                'available_languages' => $ttsLanguages,
             ],
         ];
     }

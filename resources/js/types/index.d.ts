@@ -12,6 +12,6 @@ export type PageProps<
         user: User;
     };
     tts?: {
-        elevenlabs_languages: string[];
+        available_languages: string[];
     };
 };

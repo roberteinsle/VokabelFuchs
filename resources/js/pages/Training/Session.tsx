@@ -50,6 +50,7 @@ export default function TrainingSession({ session, question, cards_remaining, ca
             answer: submittedAnswer,
             mode: question.mode,
             target_lang: question.target_lang,
+            source_lang: question.source_lang,
         }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -162,11 +163,29 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                         </p>
 
                         <div className="flex items-center justify-center gap-2">
-                            <h2 className="text-3xl font-bold text-gray-900">{question.prompt}</h2>
-                            <TtsButton
-                                text={question.prompt}
-                                lang={question.source_lang as 'de' | 'en' | 'fr'}
-                            />
+                            {question.mode === 'dictation' ? (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        const { speak } = await import('@/lib/tts');
+                                        speak(question.prompt, question.source_lang as 'de' | 'en' | 'fr');
+                                    }}
+                                    className="w-24 h-24 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors"
+                                    title="Wort anhören"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
+                                </button>
+                            ) : (
+                                <>
+                                    <h2 className="text-3xl font-bold text-gray-900">{question.prompt}</h2>
+                                    {question.mode !== 'free_text' && (
+                                        <TtsButton
+                                            text={question.prompt}
+                                            lang={question.source_lang as 'de' | 'en' | 'fr'}
+                                        />
+                                    )}
+                                </>
+                            )}
                         </div>
 
                         {question.sentence && (
@@ -200,6 +219,22 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                             <Input
                                 type="text"
                                 placeholder="Übersetzung eingeben..."
+                                value={textAnswer}
+                                onChange={(e) => setTextAnswer(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && !processing && textAnswer.trim() && handleFreeTextSubmit()}
+                                className="text-center text-lg h-12"
+                                autoFocus
+                            />
+                        </div>
+                    )}
+
+                    {/* Dictation */}
+                    {question.mode === 'dictation' && (
+                        <div className="space-y-3 mt-4">
+                            <p className="text-sm text-gray-500 text-center">Höre zu und schreibe die Übersetzung</p>
+                            <Input
+                                type="text"
+                                placeholder="Was hörst du?..."
                                 value={textAnswer}
                                 onChange={(e) => setTextAnswer(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && !processing && textAnswer.trim() && handleFreeTextSubmit()}

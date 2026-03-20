@@ -7,13 +7,13 @@ const LANG_MAP: Record<string, string> = {
 };
 
 let currentAudio: HTMLAudioElement | null = null;
-let elevenLabsLanguages: string[] = [];
+let ttsLanguages: string[] = [];
 
-export function setElevenLabsLanguages(languages: string[]): void {
-    elevenLabsLanguages = languages;
+export function setTtsLanguages(languages: string[]): void {
+    ttsLanguages = languages;
 }
 
-async function speakElevenLabs(text: string, lang: string): Promise<boolean> {
+async function speakServer(text: string, lang: string): Promise<boolean> {
     try {
         const response = await axios.post('/tts/speak', {
             text,
@@ -57,15 +57,11 @@ function speakBrowser(text: string, lang: string): void {
 }
 
 export async function speak(text: string, lang: 'de' | 'en' | 'fr'): Promise<void> {
-    console.log('[TTS] speak', { text, lang, elevenLabsLanguages, hasLang: elevenLabsLanguages.includes(lang) });
-
-    if (elevenLabsLanguages.includes(lang)) {
-        const success = await speakElevenLabs(text, lang);
-        console.log('[TTS] ElevenLabs result:', success);
+    if (ttsLanguages.includes(lang)) {
+        const success = await speakServer(text, lang);
         if (success) return;
     }
 
-    console.log('[TTS] Falling back to browser TTS');
     speakBrowser(text, lang);
 }
 
@@ -80,5 +76,5 @@ export function stopSpeech(): void {
 }
 
 export function isTtsSupported(): boolean {
-    return 'speechSynthesis' in window || elevenLabsLanguages.length > 0;
+    return 'speechSynthesis' in window || ttsLanguages.length > 0;
 }

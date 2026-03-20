@@ -59,7 +59,7 @@ export interface FlashCard {
 
 export interface TrainingQuestion {
     flash_card_id: number;
-    mode: 'multiple_choice' | 'free_text';
+    mode: 'multiple_choice' | 'free_text' | 'dictation';
     source_lang: string;
     target_lang: string;
     prompt: string;

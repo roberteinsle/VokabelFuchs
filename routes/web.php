@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackupController;
-use App\Http\Controllers\ElevenLabsController;
+use App\Http\Controllers\TtsController;
 use App\Http\Controllers\ChildController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\ChildTagController;
@@ -84,16 +84,13 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     Route::post('/profile/pin', [ProfileController::class, 'updatePin'])->name('profile.pin.update');
     Route::post('/profile/pin/remove', [ProfileController::class, 'removePin'])->name('profile.pin.remove');
 
-    // ElevenLabs TTS (settings — parent only)
-    Route::post('/elevenlabs/api-key', [ElevenLabsController::class, 'updateApiKey'])->name('elevenlabs.api-key.update');
-    Route::get('/elevenlabs/voices', [ElevenLabsController::class, 'voices'])->name('elevenlabs.voices');
-    Route::post('/elevenlabs/voice', [ElevenLabsController::class, 'updateVoice'])->name('elevenlabs.voice.update');
-    Route::delete('/elevenlabs/voice', [ElevenLabsController::class, 'removeVoice'])->name('elevenlabs.voice.destroy');
+    // Google TTS settings
+    Route::put('/profile/tts', [TtsController::class, 'updateSettings'])->name('profile.tts.update');
 });
 
 // === SHARED ROUTES (parent + child) ===
 Route::middleware(['auth'])->group(function () {
-    Route::post('/tts/speak', [ElevenLabsController::class, 'speak'])->name('tts.speak');
+    Route::post('/tts/speak', [TtsController::class, 'speak'])->name('tts.speak');
 });
 
 // === CHILD ROUTES ===

@@ -1,4 +1,4 @@
-import { speak, setElevenLabsLanguages } from '@/lib/tts';
+import { speak, setTtsLanguages } from '@/lib/tts';
 import { Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePage } from '@inertiajs/react';
@@ -12,14 +12,14 @@ interface TtsButtonProps {
 }
 
 export default function TtsButton({ text, lang, size = 'sm', className }: TtsButtonProps) {
-    const { tts } = usePage().props as { tts?: { elevenlabs_languages: string[] } };
+    const { tts } = usePage().props as { tts?: { available_languages: string[] } };
     const [playing, setPlaying] = useState(false);
 
     useEffect(() => {
-        if (tts?.elevenlabs_languages) {
-            setElevenLabsLanguages(tts.elevenlabs_languages);
+        if (tts?.available_languages) {
+            setTtsLanguages(tts.available_languages);
         }
-    }, [tts?.elevenlabs_languages]);
+    }, [tts?.available_languages]);
 
     const handleClick = async () => {
         setPlaying(true);
