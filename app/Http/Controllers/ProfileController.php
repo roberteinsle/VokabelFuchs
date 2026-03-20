@@ -33,7 +33,7 @@ class ProfileController extends Controller
                 ],
             ],
             'ttsVoices' => config('tts.voices'),
-            'imagePrompt' => $user->image_prompt ?? 'Flache Vektorillustration von einem {word}, einfach und farbenfroh, klare Formen, weißer Hintergrund, kinderfreundlicher Stil',
+            'imagePrompt' => $user->image_prompt ?? 'Flat vector illustration of a {word}, simple and colorful, clean shapes, white background, child-friendly style, no text',
         ]);
     }
 

@@ -41,7 +41,7 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
 
     return (
         <>
-            <Head title="VokabelFuchs v1.1.3" />
+            <Head title="VokabelFuchs v1.1.4" />
             <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-6">
                 <div className="text-4xl mb-2">🦊</div>
                 <h1 className="text-gray-900 text-2xl font-semibold mb-12">Wer bist du?</h1>
@@ -87,7 +87,7 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
                     </Link>
                 )}
 
-                <p className="mt-4 text-xs text-gray-300">V. 1.1.3</p>
+                <p className="mt-4 text-xs text-gray-300">V. 1.1.4</p>
             </div>
         </>
     );
