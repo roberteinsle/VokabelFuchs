@@ -8,6 +8,7 @@ interface Props {
     hasKey: boolean;
     voices: Record<string, string>;
     allVoices: Record<string, Record<string, string[]>>;
+    imagePrompt: string;
 }
 
 const LANG_LABELS: Record<string, string> = {
@@ -16,7 +17,7 @@ const LANG_LABELS: Record<string, string> = {
     fr: 'Französisch',
 };
 
-export default function GoogleTtsForm({ hasKey, voices, allVoices }: Props) {
+export default function GoogleTtsForm({ hasKey, voices, allVoices, imagePrompt }: Props) {
     const [showKey, setShowKey] = useState(false);
 
     const { data, setData, put, processing, recentlySuccessful } = useForm({
@@ -24,6 +25,7 @@ export default function GoogleTtsForm({ hasKey, voices, allVoices }: Props) {
         google_tts_voice_de: voices.de ?? 'de-DE-Wavenet-C',
         google_tts_voice_en: voices.en ?? 'en-GB-Wavenet-A',
         google_tts_voice_fr: voices.fr ?? 'fr-FR-Wavenet-A',
+        image_prompt: imagePrompt,
     });
 
     return (
@@ -84,6 +86,21 @@ export default function GoogleTtsForm({ hasKey, voices, allVoices }: Props) {
                     </div>
                 );
             })}
+
+            <div className="border-t border-gray-200 pt-4 mt-4">
+                <Label htmlFor="image-prompt">Bild-Prompt (Imagen)</Label>
+                <textarea
+                    id="image-prompt"
+                    value={data.image_prompt}
+                    onChange={(e) => setData('image_prompt', e.target.value)}
+                    rows={3}
+                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Flat vector illustration of a {word}, simple and colorful..."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                    <code className="bg-gray-100 px-1 rounded">{'{word}'}</code> wird durch das deutsche Wort ersetzt.
+                </p>
+            </div>
 
             <div className="flex items-center gap-3">
                 <Button type="submit" disabled={processing}>Speichern</Button>

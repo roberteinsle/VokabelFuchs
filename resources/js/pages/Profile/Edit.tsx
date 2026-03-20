@@ -13,9 +13,10 @@ interface Props {
     hasPin: boolean;
     ttsSettings: { hasKey: boolean; voices: Record<string, string> };
     ttsVoices: Record<string, Record<string, string[]>>;
+    imagePrompt: string;
 }
 
-export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, ttsVoices }: Props) {
+export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, ttsVoices, imagePrompt }: Props) {
     return (
         <AppLayout>
             <Head title="Profil" />
@@ -40,6 +41,7 @@ export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, tts
                         hasKey={ttsSettings.hasKey}
                         voices={ttsSettings.voices}
                         allVoices={ttsVoices}
+                        imagePrompt={imagePrompt}
                     />
                 </div>
 

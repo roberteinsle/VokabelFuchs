@@ -167,7 +167,9 @@ class VocabularyController extends Controller
         }
 
         $word = $vocabulary->word_de;
-        $prompt = "Generate an 8-bit pixel art image of a small {$word} in Minecraft style.";
+        $template = $request->user()->image_prompt
+            ?? 'Flat vector illustration of a {word}, simple and colorful, clean shapes, white background, child-friendly style';
+        $prompt = str_replace('{word}', $word, $template);
 
         $response = Http::timeout(30)->post(
             "https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict?key={$apiKey}",

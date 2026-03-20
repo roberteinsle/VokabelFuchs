@@ -61,6 +61,7 @@ class TtsController extends Controller
             'google_tts_voice_de' => ['required', 'string', 'max:100'],
             'google_tts_voice_en' => ['required', 'string', 'max:100'],
             'google_tts_voice_fr' => ['required', 'string', 'max:100'],
+            'image_prompt' => ['nullable', 'string', 'max:500'],
         ]);
 
         $data = [
@@ -69,6 +70,7 @@ class TtsController extends Controller
                 'en' => $request->google_tts_voice_en,
                 'fr' => $request->google_tts_voice_fr,
             ],
+            'image_prompt' => $request->image_prompt,
         ];
 
         if ($request->filled('google_tts_api_key')) {

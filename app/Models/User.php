@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'pin', 'google_tts_api_key', 'google_tts_voices'])]
+#[Fillable(['name', 'email', 'password', 'pin', 'google_tts_api_key', 'google_tts_voices', 'image_prompt'])]
 #[Hidden(['password', 'remember_token', 'google_tts_api_key'])]
 class User extends Authenticatable
 {
