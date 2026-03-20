@@ -33,7 +33,6 @@ class ProfileController extends Controller
                 ],
             ],
             'ttsVoices' => config('tts.voices'),
-            'hasOpenAiKey' => ! empty($user->openai_api_key),
         ]);
     }
 
@@ -68,18 +67,6 @@ class ProfileController extends Controller
         return back()->with('status', 'pin-updated');
     }
 
-    public function updateOpenAiKey(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'openai_api_key' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        if ($request->filled('openai_api_key')) {
-            $request->user()->update(['openai_api_key' => $request->openai_api_key]);
-        }
-
-        return back()->with('status', 'openai-updated');
-    }
 
     public function removePin(Request $request): RedirectResponse
     {

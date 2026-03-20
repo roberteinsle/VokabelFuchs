@@ -8,15 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->text('openai_api_key')->nullable()->after('google_tts_voices');
-        });
+        if (Schema::hasColumn('users', 'openai_api_key')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('openai_api_key');
+            });
+        }
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('openai_api_key');
+            $table->text('openai_api_key')->nullable();
         });
     }
 };

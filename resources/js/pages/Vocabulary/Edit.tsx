@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/components/layout/AppLayout';
 import TtsButton from '@/components/common/TtsButton';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ const LANG_LABELS: Record<string, string> = { de_en: 'Englisch', de_fr: 'Franzö
 const TARGET_LANG: Record<string, 'en' | 'fr'> = { de_en: 'en', de_fr: 'fr' };
 
 export default function VocabularyEdit({ vocabulary, list, tags }: Props) {
-    const { auth } = usePage().props as { auth: { user: { openai_api_key?: string } } };
     const targetLang = list ? (TARGET_LANG[list.language_pair] ?? 'en') : null;
     const targetLabel = list ? (LANG_LABELS[list.language_pair] ?? list.language_pair) : null;
     const { data, setData, put, processing, errors } = useForm({
@@ -143,9 +142,7 @@ export default function VocabularyEdit({ vocabulary, list, tags }: Props) {
                                 {generating ? 'Wird generiert...' : imagePath ? 'Bild neu generieren' : 'Bild generieren'}
                             </Button>
                             {imageError && <p className="text-sm text-red-600">{imageError}</p>}
-                            {!auth.user && (
-                                <p className="text-xs text-gray-500">OpenAI API-Key im Profil hinterlegen.</p>
-                            )}
+                            <p className="text-xs text-gray-500">Nutzt den Google Cloud API-Key aus den Profil-Einstellungen (Imagen API).</p>
                         </CardContent>
                     </Card>
 

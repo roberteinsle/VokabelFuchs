@@ -161,23 +161,24 @@ class VocabularyController extends Controller
             abort(403);
         }
 
-        $apiKey = $request->user()->openai_api_key;
+        $apiKey = $request->user()->google_tts_api_key;
         if (! $apiKey) {
-            return response()->json(['error' => 'Kein OpenAI API-Key hinterlegt.'], 422);
+            return response()->json(['error' => 'Kein Google Cloud API-Key hinterlegt (siehe Profil → Sprachausgabe).'], 422);
         }
 
         $word = $vocabulary->word_de;
         $prompt = "Generate an 8-bit pixel art image of a small {$word} in Minecraft style.";
 
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$apiKey}",
-        ])->post('https://api.openai.com/v1/images/generations', [
-            'model' => 'dall-e-3',
-            'prompt' => $prompt,
-            'n' => 1,
-            'size' => '1024x1024',
-            'quality' => 'standard',
-        ]);
+        $response = Http::timeout(30)->post(
+            "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key={$apiKey}",
+            [
+                'instances' => [['prompt' => $prompt]],
+                'parameters' => [
+                    'sampleCount' => 1,
+                    'aspectRatio' => '1:1',
+                ],
+            ]
+        );
 
         if ($response->failed()) {
             $message = $response->json('error.message') ?? 'Bildgenerierung fehlgeschlagen';
@@ -185,12 +186,12 @@ class VocabularyController extends Controller
             return response()->json(['error' => $message], $response->status());
         }
 
-        $imageUrl = $response->json('data.0.url');
-        if (! $imageUrl) {
-            return response()->json(['error' => 'Keine Bild-URL erhalten.'], 500);
+        $imageBase64 = $response->json('predictions.0.bytesBase64Encoded');
+        if (! $imageBase64) {
+            return response()->json(['error' => 'Kein Bild erhalten.'], 500);
         }
 
-        $imageData = Http::get($imageUrl)->body();
+        $imageData = base64_decode($imageBase64);
         $filename = "vocab-images/{$vocabulary->id}_".time().'.png';
 
         Storage::disk('public')->put($filename, $imageData);
