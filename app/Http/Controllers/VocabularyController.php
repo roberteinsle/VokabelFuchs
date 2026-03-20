@@ -170,7 +170,7 @@ class VocabularyController extends Controller
         $prompt = "Generate an 8-bit pixel art image of a small {$word} in Minecraft style.";
 
         $response = Http::timeout(30)->post(
-            "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key={$apiKey}",
+            "https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict?key={$apiKey}",
             [
                 'instances' => [['prompt' => $prompt]],
                 'parameters' => [
