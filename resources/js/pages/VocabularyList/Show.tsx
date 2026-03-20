@@ -7,9 +7,10 @@ import { LinkButton } from '@/components/ui/link-button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { buttonVariants } from '@/components/ui/button';
-import { ChevronLeft, ChevronDown, ChevronUp, Download, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ChevronUp, Download, ImageIcon, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react';
 import { Tag, Vocabulary } from '@/types/models';
 import { useState, useMemo } from 'react';
+import axios from 'axios';
 
 interface ChildRef {
     id: number;
@@ -151,6 +152,13 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkTagId, setBulkTagId] = useState<string>('');
+    const [generatingImages, setGeneratingImages] = useState(false);
+    const [imageProgress, setImageProgress] = useState({ done: 0, total: 0 });
+    const [vocabImages, setVocabImages] = useState<Record<number, string>>(() => {
+        const map: Record<number, string> = {};
+        vocabularies.forEach(v => { if (v.image_path) map[v.id] = v.image_path; });
+        return map;
+    });
 
     const { data: nameData, setData: setNameData, put: putName, processing: nameProcessing } = useForm({
         name: list.name,
@@ -217,6 +225,26 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
         router.post(route('parent.vocabulary.bulk-assign-tag'), { ids: Array.from(selectedIds), tag_id: parseInt(bulkTagId) }, {
             onSuccess: () => { setSelectedIds(new Set()); setBulkTagId(''); },
         });
+    };
+
+    const handleBulkGenerateImages = async () => {
+        const ids = Array.from(selectedIds);
+        const withoutImage = ids.filter(id => !vocabImages[id]);
+        if (withoutImage.length === 0) {
+            alert('Alle ausgewählten Vokabeln haben bereits ein Bild.');
+            return;
+        }
+        setGeneratingImages(true);
+        setImageProgress({ done: 0, total: withoutImage.length });
+        for (let i = 0; i < withoutImage.length; i++) {
+            try {
+                const res = await axios.post(route('parent.vocabulary.generate-image', withoutImage[i]));
+                setVocabImages(prev => ({ ...prev, [withoutImage[i]]: res.data.image_path }));
+            } catch { /* skip failed */ }
+            setImageProgress({ done: i + 1, total: withoutImage.length });
+        }
+        setGeneratingImages(false);
+        setSelectedIds(new Set());
     };
 
     const handleNameSubmit = (e: React.FormEvent) => {
@@ -363,6 +391,10 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
                                     <Button size="sm" variant="outline" onClick={handleBulkAssignTag} disabled={!bulkTagId}>
                                         Zuweisen
                                     </Button>
+                                    <Button size="sm" variant="outline" onClick={handleBulkGenerateImages} disabled={generatingImages}>
+                                        <ImageIcon className="w-3.5 h-3.5 mr-1" />
+                                        {generatingImages ? `${imageProgress.done}/${imageProgress.total}…` : 'Bilder'}
+                                    </Button>
                                     <Button size="sm" variant="outline" onClick={handleBulkDelete} className="text-red-600 border-red-200 hover:bg-red-50">
                                         <Trash2 className="w-3.5 h-3.5 mr-1" /> Löschen
                                     </Button>
@@ -416,8 +448,11 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
                                                     />
                                                 </TableCell>
                                                 <TableCell className="font-medium">
-                                                    <div className="flex items-center gap-1">
-                                                        {vocab.word_de}
+                                                    <div className="flex items-center gap-2">
+                                                        {vocabImages[vocab.id] && (
+                                                            <img src={vocabImages[vocab.id]} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                                                        )}
+                                                        <span>{vocab.word_de}</span>
                                                         <TtsButton text={vocab.word_de} lang="de" />
                                                     </div>
                                                 </TableCell>
