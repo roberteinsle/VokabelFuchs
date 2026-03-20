@@ -18,10 +18,17 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
-            'hasPin' => $request->user()->hasPin(),
+            'hasPin' => $user->hasPin(),
+            'hasElevenLabsKey' => ! empty($user->elevenlabs_api_key),
+            'elevenLabsVoices' => $user->elevenLabsVoices->keyBy('language')->map(fn ($v) => [
+                'voice_id' => $v->voice_id,
+                'voice_name' => $v->voice_name,
+            ]),
         ]);
     }
 

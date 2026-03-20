@@ -3,16 +3,24 @@ import AppLayout from '@/components/layout/AppLayout';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdatePinForm from './Partials/UpdatePinForm';
+import ElevenLabsForm from './Partials/ElevenLabsForm';
 import BackupForm from './Partials/BackupForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
+
+interface SavedVoice {
+    voice_id: string;
+    voice_name: string;
+}
 
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
     hasPin: boolean;
+    hasElevenLabsKey: boolean;
+    elevenLabsVoices: Record<string, SavedVoice>;
 }
 
-export default function Edit({ mustVerifyEmail, status, hasPin }: Props) {
+export default function Edit({ mustVerifyEmail, status, hasPin, hasElevenLabsKey, elevenLabsVoices }: Props) {
     return (
         <AppLayout>
             <Head title="Profil" />
@@ -30,6 +38,10 @@ export default function Edit({ mustVerifyEmail, status, hasPin }: Props) {
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                     <UpdatePasswordForm />
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                    <ElevenLabsForm hasKey={hasElevenLabsKey} voices={elevenLabsVoices} />
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">

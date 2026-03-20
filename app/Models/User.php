@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'pin'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'pin', 'elevenlabs_api_key'])]
+#[Hidden(['password', 'remember_token', 'elevenlabs_api_key'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -56,5 +56,10 @@ class User extends Authenticatable
     public function mediaTimeRule(): HasOne
     {
         return $this->hasOne(MediaTimeRule::class, 'parent_id');
+    }
+
+    public function elevenLabsVoices(): HasMany
+    {
+        return $this->hasMany(ElevenLabsVoice::class, 'parent_id');
     }
 }

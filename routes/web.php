@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\ElevenLabsController;
 use App\Http\Controllers\ChildController;
 use App\Http\Controllers\ChildDashboardController;
 use App\Http\Controllers\ChildTagController;
@@ -82,6 +83,13 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/pin', [ProfileController::class, 'updatePin'])->name('profile.pin.update');
     Route::post('/profile/pin/remove', [ProfileController::class, 'removePin'])->name('profile.pin.remove');
+
+    // ElevenLabs TTS
+    Route::post('/elevenlabs/api-key', [ElevenLabsController::class, 'updateApiKey'])->name('elevenlabs.api-key.update');
+    Route::get('/elevenlabs/voices', [ElevenLabsController::class, 'voices'])->name('elevenlabs.voices');
+    Route::post('/elevenlabs/voice', [ElevenLabsController::class, 'updateVoice'])->name('elevenlabs.voice.update');
+    Route::delete('/elevenlabs/voice', [ElevenLabsController::class, 'removeVoice'])->name('elevenlabs.voice.destroy');
+    Route::post('/elevenlabs/speak', [ElevenLabsController::class, 'speak'])->name('elevenlabs.speak');
 });
 
 // === CHILD ROUTES ===
