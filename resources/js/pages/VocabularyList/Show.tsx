@@ -229,19 +229,14 @@ export default function VocabularyListShow({ list, vocabularies, tags, allChildr
 
     const handleBulkGenerateImages = async () => {
         const ids = Array.from(selectedIds);
-        const withoutImage = ids.filter(id => !vocabImages[id]);
-        if (withoutImage.length === 0) {
-            alert('Alle ausgewählten Vokabeln haben bereits ein Bild.');
-            return;
-        }
         setGeneratingImages(true);
-        setImageProgress({ done: 0, total: withoutImage.length });
-        for (let i = 0; i < withoutImage.length; i++) {
+        setImageProgress({ done: 0, total: ids.length });
+        for (let i = 0; i < ids.length; i++) {
             try {
-                const res = await axios.post(route('parent.vocabulary.generate-image', withoutImage[i]));
-                setVocabImages(prev => ({ ...prev, [withoutImage[i]]: res.data.image_path }));
+                const res = await axios.post(route('parent.vocabulary.generate-image', ids[i]));
+                setVocabImages(prev => ({ ...prev, [ids[i]]: res.data.image_path }));
             } catch { /* skip failed */ }
-            setImageProgress({ done: i + 1, total: withoutImage.length });
+            setImageProgress({ done: i + 1, total: ids.length });
         }
         setGeneratingImages(false);
         setSelectedIds(new Set());

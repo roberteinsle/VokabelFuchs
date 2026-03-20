@@ -193,6 +193,12 @@ class VocabularyController extends Controller
             return response()->json(['error' => 'Kein Bild erhalten.'], 500);
         }
 
+        // Delete old image
+        if ($vocabulary->image_path) {
+            $oldFile = str_replace('/storage/', '', $vocabulary->image_path);
+            Storage::disk('public')->delete($oldFile);
+        }
+
         $imageData = base64_decode($imageBase64);
         $filename = "vocab-images/{$vocabulary->id}_".time().'.png';
 
