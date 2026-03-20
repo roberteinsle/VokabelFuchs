@@ -4,6 +4,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdatePinForm from './Partials/UpdatePinForm';
 import GoogleTtsForm from './Partials/GoogleTtsForm';
+import OpenAiForm from './Partials/OpenAiForm';
 import BackupForm from './Partials/BackupForm';
 import DeleteUserForm from './Partials/DeleteUserForm';
 
@@ -13,9 +14,10 @@ interface Props {
     hasPin: boolean;
     ttsSettings: { hasKey: boolean; voices: Record<string, string> };
     ttsVoices: Record<string, Record<string, string[]>>;
+    hasOpenAiKey: boolean;
 }
 
-export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, ttsVoices }: Props) {
+export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, ttsVoices, hasOpenAiKey }: Props) {
     return (
         <AppLayout>
             <Head title="Profil" />
@@ -41,6 +43,10 @@ export default function Edit({ mustVerifyEmail, status, hasPin, ttsSettings, tts
                         voices={ttsSettings.voices}
                         allVoices={ttsVoices}
                     />
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                    <OpenAiForm hasKey={hasOpenAiKey} />
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200">

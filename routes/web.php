@@ -86,6 +86,13 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
 
     // Google TTS settings
     Route::put('/profile/tts', [TtsController::class, 'updateSettings'])->name('profile.tts.update');
+
+    // OpenAI settings
+    Route::put('/profile/openai', [ProfileController::class, 'updateOpenAiKey'])->name('profile.openai.update');
+
+    // DALL-E image generation
+    Route::post('/vocabulary/{vocabulary}/generate-image', [VocabularyController::class, 'generateImage'])
+        ->name('vocabulary.generate-image');
 });
 
 // === SHARED ROUTES (parent + child) ===

@@ -188,6 +188,10 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                             )}
                         </div>
 
+                        {question.image_path && (
+                            <img src={question.image_path} alt="" className="w-20 h-20 rounded-lg object-cover mx-auto" />
+                        )}
+
                         {question.sentence && (
                             <p className="text-sm text-gray-500 italic">„{question.sentence}"</p>
                         )}

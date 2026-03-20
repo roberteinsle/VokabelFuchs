@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Vocabulary;
 use App\Models\VocabularyList;
 use App\Services\LeitnerService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -150,6 +153,53 @@ class VocabularyController extends Controller
 
         return redirect()->route('parent.vocabulary-lists.index')
             ->with('success', $vocabs->count().' Vokabeln gelöscht.');
+    }
+
+    public function generateImage(Request $request, Vocabulary $vocabulary): JsonResponse
+    {
+        if ($vocabulary->parent_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $apiKey = $request->user()->openai_api_key;
+        if (! $apiKey) {
+            return response()->json(['error' => 'Kein OpenAI API-Key hinterlegt.'], 422);
+        }
+
+        $word = $vocabulary->word_de;
+        $prompt = "Generate an 8-bit pixel art image of a small {$word} in Minecraft style.";
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$apiKey}",
+        ])->post('https://api.openai.com/v1/images/generations', [
+            'model' => 'dall-e-3',
+            'prompt' => $prompt,
+            'n' => 1,
+            'size' => '1024x1024',
+            'quality' => 'standard',
+        ]);
+
+        if ($response->failed()) {
+            $message = $response->json('error.message') ?? 'Bildgenerierung fehlgeschlagen';
+
+            return response()->json(['error' => $message], $response->status());
+        }
+
+        $imageUrl = $response->json('data.0.url');
+        if (! $imageUrl) {
+            return response()->json(['error' => 'Keine Bild-URL erhalten.'], 500);
+        }
+
+        $imageData = Http::get($imageUrl)->body();
+        $filename = "vocab-images/{$vocabulary->id}_".time().'.png';
+
+        Storage::disk('public')->put($filename, $imageData);
+
+        $vocabulary->update(['image_path' => "/storage/{$filename}"]);
+
+        return response()->json([
+            'image_path' => "/storage/{$filename}",
+        ]);
     }
 
     public function bulkAssignTag(Request $request): RedirectResponse

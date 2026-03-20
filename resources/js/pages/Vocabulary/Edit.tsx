@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/components/layout/AppLayout';
 import TtsButton from '@/components/common/TtsButton';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tag, Vocabulary } from '@/types/models';
+import { useState } from 'react';
+import axios from 'axios';
 
 interface VocabularyListData {
     id: number;
@@ -23,6 +25,7 @@ const LANG_LABELS: Record<string, string> = { de_en: 'Englisch', de_fr: 'Franzö
 const TARGET_LANG: Record<string, 'en' | 'fr'> = { de_en: 'en', de_fr: 'fr' };
 
 export default function VocabularyEdit({ vocabulary, list, tags }: Props) {
+    const { auth } = usePage().props as { auth: { user: { openai_api_key?: string } } };
     const targetLang = list ? (TARGET_LANG[list.language_pair] ?? 'en') : null;
     const targetLabel = list ? (LANG_LABELS[list.language_pair] ?? list.language_pair) : null;
     const { data, setData, put, processing, errors } = useForm({
@@ -34,6 +37,23 @@ export default function VocabularyEdit({ vocabulary, list, tags }: Props) {
         sentence_fr: vocabulary.sentence_fr ?? '',
         tag_ids: vocabulary.tags.map((t) => t.id),
     });
+
+    const [imagePath, setImagePath] = useState<string | null>(vocabulary.image_path ?? null);
+    const [generating, setGenerating] = useState(false);
+    const [imageError, setImageError] = useState<string | null>(null);
+
+    const handleGenerateImage = async () => {
+        setGenerating(true);
+        setImageError(null);
+        try {
+            const response = await axios.post(route('parent.vocabulary.generate-image', vocabulary.id));
+            setImagePath(response.data.image_path);
+        } catch (err: any) {
+            setImageError(err.response?.data?.error ?? 'Fehler bei der Bildgenerierung');
+        } finally {
+            setGenerating(false);
+        }
+    };
 
     const toggleTag = (tagId: number) => {
         setData('tag_ids', data.tag_ids.includes(tagId)
@@ -96,6 +116,35 @@ export default function VocabularyEdit({ vocabulary, list, tags }: Props) {
                                         <Input value={data.sentence_fr} onChange={(e) => setData('sentence_fr', e.target.value)} />
                                     </div>
                                 </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Image generation */}
+                    <Card>
+                        <CardHeader><CardTitle>Bild</CardTitle></CardHeader>
+                        <CardContent className="space-y-3">
+                            {imagePath && (
+                                <div className="flex justify-center">
+                                    <img
+                                        src={imagePath}
+                                        alt={data.word_de}
+                                        className="w-32 h-32 rounded-xl object-cover border border-gray-200"
+                                    />
+                                </div>
+                            )}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleGenerateImage}
+                                disabled={generating || !data.word_de}
+                                className="w-full"
+                            >
+                                {generating ? 'Wird generiert...' : imagePath ? 'Bild neu generieren' : 'Bild generieren'}
+                            </Button>
+                            {imageError && <p className="text-sm text-red-600">{imageError}</p>}
+                            {!auth.user && (
+                                <p className="text-xs text-gray-500">OpenAI API-Key im Profil hinterlegen.</p>
                             )}
                         </CardContent>
                     </Card>
