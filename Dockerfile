@@ -35,9 +35,9 @@ RUN php artisan config:cache 2>/dev/null || true \
     && php artisan view:cache 2>/dev/null || true
 
 # Storage permissions
-RUN mkdir -p storage/logs storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache \
+RUN mkdir -p storage/logs storage/framework/views storage/framework/cache storage/framework/sessions storage/app/public/vocab-images bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan leitner:backfill-cards && php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link 2>/dev/null; php artisan leitner:backfill-cards && php artisan serve --host=0.0.0.0 --port=8000"]
