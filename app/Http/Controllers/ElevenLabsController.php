@@ -36,18 +36,39 @@ class ElevenLabsController extends Controller
         ])->get('https://api.elevenlabs.io/v1/voices');
 
         if ($response->failed()) {
-            return response()->json(['error' => 'ElevenLabs API-Fehler: '.$response->status()], $response->status());
+            $message = $response->json('detail.message') ?? 'Unbekannter Fehler';
+
+            return response()->json(['error' => 'ElevenLabs: '.$message], 422);
         }
 
-        $voices = collect($response->json('voices', []))->map(fn ($v) => [
+        $allVoices = collect($response->json('voices', []))->map(fn ($v) => [
             'voice_id' => $v['voice_id'],
             'name' => $v['name'],
             'category' => $v['category'] ?? null,
             'labels' => $v['labels'] ?? [],
             'preview_url' => $v['preview_url'] ?? null,
+            'language' => $v['labels']['language'] ?? null,
+            'accent' => $v['labels']['accent'] ?? null,
         ]);
 
-        return response()->json(['voices' => $voices]);
+        // Group voices by target language: de → German, en → British accent preferred, fr → French
+        $grouped = [
+            'de' => $allVoices->filter(fn ($v) => $v['language'] === 'de')->values(),
+            'en' => $allVoices->filter(fn ($v) => $v['language'] === 'en' && $v['accent'] === 'british')->values(),
+            'fr' => $allVoices->filter(fn ($v) => $v['language'] === 'fr')->values(),
+        ];
+
+        // Fallback: if no british voices, show all english voices
+        if ($grouped['en']->isEmpty()) {
+            $grouped['en'] = $allVoices->filter(fn ($v) => $v['language'] === 'en')->values();
+        }
+
+        // Fallback: if no french voices, show all with french accent
+        if ($grouped['fr']->isEmpty()) {
+            $grouped['fr'] = $allVoices->filter(fn ($v) => ($v['accent'] ?? '') === 'french')->values();
+        }
+
+        return response()->json(['voices' => $grouped]);
     }
 
     public function updateVoice(Request $request): RedirectResponse

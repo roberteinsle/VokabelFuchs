@@ -84,12 +84,16 @@ Route::middleware(['auth', 'verified', 'parent'])->prefix('parent')->name('paren
     Route::post('/profile/pin', [ProfileController::class, 'updatePin'])->name('profile.pin.update');
     Route::post('/profile/pin/remove', [ProfileController::class, 'removePin'])->name('profile.pin.remove');
 
-    // ElevenLabs TTS
+    // ElevenLabs TTS (settings — parent only)
     Route::post('/elevenlabs/api-key', [ElevenLabsController::class, 'updateApiKey'])->name('elevenlabs.api-key.update');
     Route::get('/elevenlabs/voices', [ElevenLabsController::class, 'voices'])->name('elevenlabs.voices');
     Route::post('/elevenlabs/voice', [ElevenLabsController::class, 'updateVoice'])->name('elevenlabs.voice.update');
     Route::delete('/elevenlabs/voice', [ElevenLabsController::class, 'removeVoice'])->name('elevenlabs.voice.destroy');
-    Route::post('/elevenlabs/speak', [ElevenLabsController::class, 'speak'])->name('elevenlabs.speak');
+});
+
+// === SHARED ROUTES (parent + child) ===
+Route::middleware(['auth'])->group(function () {
+    Route::post('/tts/speak', [ElevenLabsController::class, 'speak'])->name('tts.speak');
 });
 
 // === CHILD ROUTES ===

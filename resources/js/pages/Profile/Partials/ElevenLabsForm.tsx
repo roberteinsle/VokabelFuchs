@@ -29,7 +29,7 @@ const LANGUAGES = [
 ];
 
 export default function ElevenLabsForm({ hasKey, voices }: Props) {
-    const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
+    const [voicesByLang, setVoicesByLang] = useState<Record<string, Voice[]>>({});
     const [loadingVoices, setLoadingVoices] = useState(false);
     const [voiceError, setVoiceError] = useState('');
     const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
@@ -56,11 +56,12 @@ export default function ElevenLabsForm({ hasKey, voices }: Props) {
         setVoiceError('');
         try {
             const response = await fetch(route('parent.elevenlabs.voices'), {
+                credentials: 'same-origin',
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             });
             const data = await response.json();
             if (response.ok) {
-                setAvailableVoices(data.voices);
+                setVoicesByLang(data.voices);
             } else {
                 setVoiceError(data.error || 'Fehler beim Laden.');
             }
@@ -153,6 +154,7 @@ export default function ElevenLabsForm({ hasKey, voices }: Props) {
 
                     {LANGUAGES.map(lang => {
                         const saved = voices[lang.code];
+                        const langVoices = voicesByLang[lang.code] ?? [];
                         return (
                             <div key={lang.code} className="border border-gray-200 rounded-lg p-4">
                                 <div className="flex items-center justify-between">
@@ -176,9 +178,9 @@ export default function ElevenLabsForm({ hasKey, voices }: Props) {
                                     )}
                                 </div>
 
-                                {availableVoices.length > 0 && (
+                                {langVoices.length > 0 && (
                                     <div className="mt-3 max-h-48 overflow-y-auto space-y-1">
-                                        {availableVoices.map(voice => (
+                                        {langVoices.map(voice => (
                                             <div
                                                 key={voice.voice_id}
                                                 className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer transition-colors ${
@@ -192,7 +194,8 @@ export default function ElevenLabsForm({ hasKey, voices }: Props) {
                                                     <span className="font-medium">{voice.name}</span>
                                                     {voice.labels && Object.keys(voice.labels).length > 0 && (
                                                         <span className="ml-2 text-xs text-gray-400">
-                                                            {Object.values(voice.labels).slice(0, 3).join(', ')}
+                                                            {[voice.labels.gender, voice.labels.accent, voice.labels.descriptive]
+                                                                .filter(Boolean).join(', ')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -212,6 +215,10 @@ export default function ElevenLabsForm({ hasKey, voices }: Props) {
                                             </div>
                                         ))}
                                     </div>
+                                )}
+
+                                {Object.keys(voicesByLang).length > 0 && langVoices.length === 0 && (
+                                    <p className="mt-3 text-xs text-gray-400">Keine Stimmen für diese Sprache verfügbar.</p>
                                 )}
                             </div>
                         );
