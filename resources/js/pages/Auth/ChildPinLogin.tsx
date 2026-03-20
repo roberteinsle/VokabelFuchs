@@ -126,7 +126,7 @@ export default function ChildPinLogin({ children }: Props) {
                     </Card>
 
                     <p className="text-center text-sm text-gray-500">
-                        Eltern? <a href={route('login')} className="text-blue-600 hover:underline">Eltern-Login</a>
+                        <a href={route('profiles.index')} className="text-blue-600 hover:underline">Zurück zur Profilauswahl</a>
                     </p>
                 </div>
             </div>

@@ -21,7 +21,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     <Link href={route('parent.dashboard')} className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-blue-600">VokabelFuchs</span>
                     </Link>
-                    <p className="text-xs text-gray-500 mt-1">Eltern-Bereich</p>
+                    <p className="text-xs text-gray-500 mt-1">Eltern-Bereich · V. 1.1.1</p>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1">
@@ -59,8 +59,6 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         </Link>
                     </div>
                 </nav>
-
-                <p className="px-6 pb-4 text-xs text-gray-300">V. 1.1.1</p>
             </aside>
 
             {/* Main content */}

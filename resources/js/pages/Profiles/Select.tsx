@@ -41,7 +41,7 @@ export default function ProfileSelect({ profiles, hasUsers }: Props) {
 
     return (
         <>
-            <Head title="Wer bist du?" />
+            <Head title="VokabelFuchs v1.1.2" />
             <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-6">
                 <div className="text-4xl mb-2">🦊</div>
                 <h1 className="text-gray-900 text-2xl font-semibold mb-12">Wer bist du?</h1>

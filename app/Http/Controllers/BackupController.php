@@ -79,7 +79,7 @@ class BackupController extends Controller
         ];
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $filename = 'vokabelfuchs-backup-'.now()->format('Y-m-d').'.json';
+        $filename = 'vokabelfuchs-backup-'.now()->format('Y-m-d_H-i-s').'.json';
 
         return response($json, 200, [
             'Content-Type' => 'application/json',

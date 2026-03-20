@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'parent' => EnsureIsParent::class,
             'child.auth' => EnsureIsChild::class,
         ]);
+
+        $middleware->redirectGuestsTo('/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -89,7 +89,7 @@ class ChildPinAuthTest extends TestCase
     public function test_parent_routes_require_parent_auth(): void
     {
         $response = $this->get(route('parent.dashboard'));
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect('/');
     }
 
     public function test_parent_with_pin_redirected_to_profiles_without_unlock(): void
