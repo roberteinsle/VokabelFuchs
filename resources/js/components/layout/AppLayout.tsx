@@ -21,7 +21,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                     <Link href={route('parent.dashboard')} className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-blue-600">VokabelFuchs</span>
                     </Link>
-                    <p className="text-xs text-gray-500 mt-1">Eltern-Bereich · V. 1.1.4</p>
+                    <p className="text-xs text-gray-500 mt-1">Eltern-Bereich · V. 1.1.5</p>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1">

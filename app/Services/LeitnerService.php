@@ -189,4 +189,31 @@ class LeitnerService
 
         return $created;
     }
+
+    /**
+     * Remove flash cards for vocabularies that are no longer linked to any
+     * tag assigned to the child.
+     */
+    public function removeOrphanedCards(int $childId): int
+    {
+        $assignedTagIds = Child::find($childId)
+            ->tags()
+            ->pluck('tags.id')
+            ->toArray();
+
+        if (empty($assignedTagIds)) {
+            // Child has no tags → remove ALL flash cards
+            return FlashCard::where('child_id', $childId)->delete();
+        }
+
+        // Find vocabulary IDs that still have at least one assigned tag
+        $validVocabIds = Vocabulary::whereHas('tags', fn ($q) => $q->whereIn('tags.id', $assignedTagIds))
+            ->pluck('id')
+            ->toArray();
+
+        // Delete cards for vocabularies no longer covered by any assigned tag
+        return FlashCard::where('child_id', $childId)
+            ->whereNotIn('vocabulary_id', $validVocabIds)
+            ->delete();
+    }
 }

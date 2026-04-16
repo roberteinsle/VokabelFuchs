@@ -52,6 +52,14 @@ class ChildTagController extends Controller
 
         $tag->children()->detach($child->id);
 
-        return back()->with('success', "{$child->name} wurde aus dem Cluster \"{$tag->name}\" entfernt.");
+        // Remove flash cards for vocabularies no longer covered by any assigned tag
+        $removed = $this->leitner->removeOrphanedCards($child->id);
+
+        $msg = "{$child->name} wurde aus dem Cluster \"{$tag->name}\" entfernt.";
+        if ($removed > 0) {
+            $msg .= " {$removed} Karteikarten wurden entfernt.";
+        }
+
+        return back()->with('success', $msg);
     }
 }
