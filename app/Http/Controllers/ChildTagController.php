@@ -32,10 +32,16 @@ class ChildTagController extends Controller
 
         $tag->children()->syncWithoutDetaching([$child->id]);
 
-        // Create flash cards for newly assigned vocab
+        // Create flash cards for newly assigned vocab + remove orphaned ones
         $this->leitner->createMissingCards($child->id, $request->user()->id);
+        $removed = $this->leitner->removeOrphanedCards($child->id);
 
-        return back()->with('success', "{$child->name} wurde dem Cluster \"{$tag->name}\" hinzugefügt.");
+        $msg = "{$child->name} wurde dem Cluster \"{$tag->name}\" hinzugefügt.";
+        if ($removed > 0) {
+            $msg .= " {$removed} veraltete Karteikarten wurden entfernt.";
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function destroy(Request $request, VocabularyList $vocabularyList, Tag $tag, Child $child): RedirectResponse
