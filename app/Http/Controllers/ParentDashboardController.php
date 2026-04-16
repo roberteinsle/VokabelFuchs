@@ -43,8 +43,7 @@ class ParentDashboardController extends Controller
                 'total_cards' => array_sum($drawerCounts),
                 'mastered_cards' => $drawerCounts[5] ?? 0,
                 'last_activity' => $lastSession?->ended_at,
-                'balance_gaming' => $child->media_time_balance_gaming,
-                'balance_youtube' => $child->media_time_balance_youtube,
+                'balance' => $child->media_time_balance,
             ];
         });
 

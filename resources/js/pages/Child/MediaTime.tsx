@@ -4,19 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MediaTimeLog } from '@/types/models';
-import { useState } from 'react';
 
 interface Props {
-    balance_gaming: number;
-    balance_youtube: number;
+    balance: number;
+    daily_cap_gaming: number;
+    daily_cap_youtube: number;
+    today_spent_gaming: number;
+    today_spent_youtube: number;
     logs: MediaTimeLog[];
 }
 
-export default function ChildMediaTime({ balance_gaming, balance_youtube, logs }: Props) {
+export default function ChildMediaTime({ balance, daily_cap_gaming, daily_cap_youtube, today_spent_gaming, today_spent_youtube, logs }: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
         type: 'gaming' as 'gaming' | 'youtube',
         minutes: 30,
     });
+
+    const remainingGaming = Math.max(0, daily_cap_gaming - today_spent_gaming);
+    const remainingYoutube = Math.max(0, daily_cap_youtube - today_spent_youtube);
+    const maxRedeemable = data.type === 'gaming'
+        ? Math.min(balance, remainingGaming)
+        : Math.min(balance, remainingYoutube);
 
     return (
         <ChildLayout>
@@ -26,22 +34,12 @@ export default function ChildMediaTime({ balance_gaming, balance_youtube, logs }
                 <h1 className="text-2xl font-bold">Mein Guthaben</h1>
 
                 {/* Unified balance */}
-                <Card className="bg-gradient-to-br from-purple-50 to-red-50 border-purple-200">
-                    <CardContent className="pt-4">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Dein Guthaben</p>
-                        <div className="grid grid-cols-2 gap-6 text-center">
-                            <div>
-                                <div className="text-3xl mb-1">🎮</div>
-                                <div className="text-3xl font-bold text-purple-700">{balance_gaming}</div>
-                                <div className="text-xs text-purple-500 mt-0.5">min Gaming</div>
-                            </div>
-                            <div>
-                                <div className="text-3xl mb-1">📺</div>
-                                <div className="text-3xl font-bold text-red-600">{balance_youtube}</div>
-                                <div className="text-xs text-red-400 mt-0.5">min YouTube</div>
-                            </div>
-                        </div>
-                        <p className="text-xs text-center text-gray-400 mt-3">Du kannst wählen, wofür du dein Guthaben einlöst.</p>
+                <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+                    <CardContent className="pt-4 text-center">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dein Guthaben</p>
+                        <p className="text-5xl font-bold text-purple-700">{balance}</p>
+                        <p className="text-sm text-gray-500 mt-1">Minuten</p>
+                        <p className="text-xs text-gray-400 mt-2">Einlösbar für 🎮 Gaming oder 📺 YouTube</p>
                     </CardContent>
                 </Card>
 
@@ -57,23 +55,29 @@ export default function ChildMediaTime({ balance_gaming, balance_youtube, logs }
                                         data.type === 'gaming' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200'
                                     }`}>
                                     🎮 Gaming
+                                    <span className="block text-xs font-normal mt-0.5">
+                                        noch {remainingGaming} min heute
+                                    </span>
                                 </button>
                                 <button type="button" onClick={() => setData('type', 'youtube')}
                                     className={`flex-1 py-3 rounded-xl border-2 font-medium transition-all ${
                                         data.type === 'youtube' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200'
                                     }`}>
                                     📺 YouTube
+                                    <span className="block text-xs font-normal mt-0.5">
+                                        noch {remainingYoutube} min heute
+                                    </span>
                                 </button>
                             </div>
                             <div>
-                                <Input type="number" min={1} max={300}
+                                <Input type="number" min={1} max={maxRedeemable || 1}
                                     value={data.minutes}
                                     onChange={(e) => setData('minutes', +e.target.value)}
                                     placeholder="Minuten"
                                 />
                                 {errors.minutes && <p className="text-sm text-red-600 mt-1">{errors.minutes}</p>}
                             </div>
-                            <Button type="submit" className="w-full" disabled={processing}>
+                            <Button type="submit" className="w-full" disabled={processing || balance === 0 || maxRedeemable === 0}>
                                 {data.minutes} Minuten {data.type === 'gaming' ? 'Gaming' : 'YouTube'} einlösen
                             </Button>
                         </form>
@@ -88,7 +92,7 @@ export default function ChildMediaTime({ balance_gaming, balance_youtube, logs }
                             {logs.map((log) => (
                                 <div key={log.id} className="flex items-center justify-between text-sm bg-white border border-gray-100 rounded-lg px-3 py-2">
                                     <span>
-                                        {log.type === 'gaming' ? '🎮' : '📺'}
+                                        {log.type === 'gaming' ? '🎮' : log.type === 'youtube' ? '📺' : '⭐'}
                                         {' '}
                                         {log.action === 'earned' ? '+' : '-'}{log.minutes} min
                                     </span>

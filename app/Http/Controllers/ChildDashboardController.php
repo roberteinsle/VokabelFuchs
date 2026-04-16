@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\MediaTimeType;
 use App\Models\Child;
 use App\Models\MediaTimeRule;
 use App\Services\LeitnerService;
@@ -32,11 +31,6 @@ class ChildDashboardController extends Controller
         ];
 
         $rule = MediaTimeRule::where('parent_id', $child->parent_id)->first();
-        $dailyCapGaming = $rule?->daily_cap_gaming ?? 60;
-        $dailyCapYoutube = $rule?->daily_cap_youtube ?? 45;
-
-        $todayEarnedGaming = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::GAMING);
-        $todayEarnedYoutube = $this->mediaTime->getTodayEarned($child->id, MediaTimeType::YOUTUBE);
 
         $languagePairs = $child->tags()
             ->join('vocabulary_lists', 'tags.vocabulary_list_id', '=', 'vocabulary_lists.id')
@@ -53,12 +47,10 @@ class ChildDashboardController extends Controller
             'mode_stats' => $modeStats,
             'mode_meta' => $modes,
             'due_count' => $dueCount,
-            'balance_gaming' => $child->media_time_balance_gaming,
-            'balance_youtube' => $child->media_time_balance_youtube,
-            'daily_cap_gaming' => $dailyCapGaming,
-            'daily_cap_youtube' => $dailyCapYoutube,
-            'today_earned_gaming' => $todayEarnedGaming,
-            'today_earned_youtube' => $todayEarnedYoutube,
+            'balance' => $child->media_time_balance,
+            'today_earned' => $this->mediaTime->getTodayEarned($child->id),
+            'daily_cap_gaming' => $rule?->daily_cap_gaming ?? 60,
+            'daily_cap_youtube' => $rule?->daily_cap_youtube ?? 45,
             'current_streak' => $child->current_streak ?? 0,
         ]);
     }

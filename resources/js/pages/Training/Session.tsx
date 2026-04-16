@@ -19,7 +19,7 @@ interface Props {
     cards_remaining: number;
     cards_total: number;
     last_result?: LastResult | null;
-    media_per_answer?: { gaming: number; youtube: number } | null;
+    media_per_answer?: number | null;
 }
 
 export default function TrainingSession({ session, question, cards_remaining, cards_total, last_result, media_per_answer }: Props) {
@@ -117,8 +117,7 @@ export default function TrainingSession({ session, question, cards_remaining, ca
                         )}
                         {feedback.correct && media_per_answer && (
                             <div className="flex gap-2 justify-center text-sm font-medium">
-                                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">🎮 +{media_per_answer.gaming} min</span>
-                                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full">📺 +{media_per_answer.youtube} min</span>
+                                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">+{media_per_answer} min</span>
                             </div>
                         )}
                     </div>

@@ -22,8 +22,7 @@ interface ChildStat {
     total_cards: number;
     mastered_cards: number;
     last_activity: string | null;
-    balance_gaming: number;
-    balance_youtube: number;
+    balance: number;
 }
 
 interface Props {
@@ -147,8 +146,7 @@ export default function ParentDashboard({ child_stats, vocabulary_count, tag_cou
                                                 : 'Noch nicht aktiv'}
                                         </span>
                                         <div className="flex gap-3">
-                                            <span>🎮 {child.balance_gaming} min</span>
-                                            <span>📺 {child.balance_youtube} min</span>
+                                            <span>⏱ {child.balance} min Guthaben</span>
                                         </div>
                                         <Link
                                             href={route('parent.children.statistics', { childName: child.name })}

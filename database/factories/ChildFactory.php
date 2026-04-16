@@ -16,8 +16,7 @@ class ChildFactory extends Factory
             'pin' => '1234',
             'language_pair' => LanguagePair::DE_EN,
             'is_active' => true,
-            'media_time_balance_gaming' => 0,
-            'media_time_balance_youtube' => 0,
+            'media_time_balance' => 0,
         ];
     }
 }

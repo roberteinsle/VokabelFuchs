@@ -18,8 +18,7 @@ class Child extends Model
         'name',
         'pin',
         'language_pair',
-        'media_time_balance_gaming',
-        'media_time_balance_youtube',
+        'media_time_balance',
         'is_active',
         'current_streak',
         'last_trained_date',
@@ -31,8 +30,7 @@ class Child extends Model
     {
         return [
             'language_pair' => LanguagePair::class,
-            'media_time_balance_gaming' => 'integer',
-            'media_time_balance_youtube' => 'integer',
+            'media_time_balance' => 'integer',
             'is_active' => 'boolean',
             'pin' => 'hashed',
             'current_streak' => 'integer',

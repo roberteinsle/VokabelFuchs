@@ -20,8 +20,7 @@ class TrainingSession extends Model
         'ended_at',
         'cards_correct',
         'cards_wrong',
-        'media_time_earned_gaming',
-        'media_time_earned_youtube',
+        'media_time_earned',
     ];
 
     protected function casts(): array
@@ -33,8 +32,7 @@ class TrainingSession extends Model
             'ended_at' => 'datetime',
             'cards_correct' => 'integer',
             'cards_wrong' => 'integer',
-            'media_time_earned_gaming' => 'integer',
-            'media_time_earned_youtube' => 'integer',
+            'media_time_earned' => 'integer',
         ];
     }
 

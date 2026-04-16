@@ -9,8 +9,7 @@ export interface Child {
     parent_id: number;
     name: string;
     language_pair: string;
-    media_time_balance_gaming: number;
-    media_time_balance_youtube: number;
+    media_time_balance: number;
     is_active: boolean;
     tags_count?: number;
     current_streak?: number;
@@ -75,14 +74,13 @@ export interface TrainingSession {
     started_at: string;
     cards_correct: number;
     cards_wrong: number;
-    media_time_earned_gaming?: number;
-    media_time_earned_youtube?: number;
+    media_time_earned?: number;
     duration_minutes?: number;
 }
 
 export interface MediaTimeLog {
     id: number;
-    type: 'gaming' | 'youtube';
+    type: 'gaming' | 'youtube' | 'earned';
     action: 'earned' | 'spent';
     minutes: number;
     balance_after: number;

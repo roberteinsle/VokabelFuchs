@@ -125,11 +125,8 @@ class TrainingSessionController extends Controller
             if (! $session->isFinished()) {
                 $session->update(['ended_at' => now()]);
                 $freshSession = $session->fresh()->load('child');
-                $credited = $this->mediaTime->creditFromSession($freshSession);
-                $session->update([
-                    'media_time_earned_gaming' => $credited['gaming'],
-                    'media_time_earned_youtube' => $credited['youtube'],
-                ]);
+                $earned = $this->mediaTime->creditFromSession($freshSession);
+                $session->update(['media_time_earned' => $earned]);
 
                 // Update streak
                 $this->mediaTime->updateStreak($freshSession->child);
@@ -264,11 +261,8 @@ class TrainingSessionController extends Controller
             $session->update(['ended_at' => now()]);
 
             // Credit media time
-            $credited = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
-            $session->update([
-                'media_time_earned_gaming' => $credited['gaming'],
-                'media_time_earned_youtube' => $credited['youtube'],
-            ]);
+            $earned = $this->mediaTime->creditFromSession($session->fresh()->load('child'));
+            $session->update(['media_time_earned' => $earned]);
 
             // Update streak
             $this->mediaTime->updateStreak($session->child);
@@ -293,8 +287,7 @@ class TrainingSessionController extends Controller
                 'cards_correct' => $session->cards_correct,
                 'cards_wrong' => $session->cards_wrong,
                 'duration_minutes' => $session->getDurationMinutes(),
-                'media_time_earned_gaming' => $session->media_time_earned_gaming,
-                'media_time_earned_youtube' => $session->media_time_earned_youtube,
+                'media_time_earned' => $session->media_time_earned ?? 0,
             ],
         ]);
     }

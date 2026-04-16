@@ -21,8 +21,7 @@ class StatisticsController extends Controller
         return Inertia::render('Statistics/ChildProgress', [
             'child'           => $child->only('id', 'name'),
             'stats'           => $this->buildStats($child->id),
-            'balance_gaming'  => $child->media_time_balance_gaming,
-            'balance_youtube' => $child->media_time_balance_youtube,
+            'balance' => $child->media_time_balance,
         ]);
     }
 

@@ -1,6 +1,5 @@
 import { Head } from '@inertiajs/react';
 import ChildLayout from '@/components/layout/ChildLayout';
-import { Button } from '@/components/ui/button';
 import { LinkButton } from '@/components/ui/link-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrainingSession } from '@/types/models';
@@ -8,15 +7,13 @@ import { TrainingSession } from '@/types/models';
 interface Props {
     session: TrainingSession & {
         duration_minutes: number;
-        media_time_earned_gaming: number;
-        media_time_earned_youtube: number;
+        media_time_earned: number;
     };
 }
 
 export default function TrainingSummary({ session }: Props) {
     const total = session.cards_correct + session.cards_wrong;
     const accuracy = total > 0 ? Math.round((session.cards_correct / total) * 100) : 0;
-    const earnedAny = session.media_time_earned_gaming > 0 || session.media_time_earned_youtube > 0;
 
     return (
         <ChildLayout>
@@ -55,16 +52,11 @@ export default function TrainingSummary({ session }: Props) {
                     </CardContent>
                 </Card>
 
-                {earnedAny && (
+                {session.media_time_earned > 0 && (
                     <Card className="bg-yellow-50 border-yellow-200">
-                        <CardContent className="pt-4 space-y-1">
+                        <CardContent className="pt-4">
                             <p className="font-semibold text-yellow-800">Medienzeit verdient! 🏆</p>
-                            {session.media_time_earned_gaming > 0 && (
-                                <p className="text-yellow-700">🎮 +{session.media_time_earned_gaming} Minuten Gaming</p>
-                            )}
-                            {session.media_time_earned_youtube > 0 && (
-                                <p className="text-yellow-700">📺 +{session.media_time_earned_youtube} Minuten YouTube</p>
-                            )}
+                            <p className="text-yellow-700">+{session.media_time_earned} Minuten</p>
                         </CardContent>
                     </Card>
                 )}

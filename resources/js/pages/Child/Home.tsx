@@ -28,16 +28,14 @@ interface Props {
     mode_stats: Record<string, DrawerStats>;
     mode_meta: Record<string, ModeMeta>;
     due_count: number;
-    balance_gaming: number;
-    balance_youtube: number;
+    balance: number;
+    today_earned: number;
     daily_cap_gaming: number;
     daily_cap_youtube: number;
-    today_earned_gaming: number;
-    today_earned_youtube: number;
     current_streak: number;
 }
 
-export default function ChildHome({ child, language_pairs, mode_stats, mode_meta, due_count, balance_gaming, balance_youtube, daily_cap_gaming, daily_cap_youtube, today_earned_gaming, today_earned_youtube, current_streak }: Props) {
+export default function ChildHome({ child, language_pairs, mode_stats, mode_meta, due_count, balance, today_earned, daily_cap_gaming, daily_cap_youtube, current_streak }: Props) {
     const [pendingDrawer, setPendingDrawer] = useState<{ mode: string; drawer: number } | null>(null);
 
     const activeLangPair = language_pairs[0] ?? child.language_pair ?? 'de_en';
@@ -84,35 +82,16 @@ export default function ChildHome({ child, language_pairs, mode_stats, mode_meta
                 )}
 
                 {/* Unified media time balance */}
-                <Card className="bg-gradient-to-br from-purple-50 to-red-50 border-purple-200">
+                <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
                     <CardContent className="pt-4 space-y-3">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dein Guthaben — du kannst wählen</p>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-sm font-medium text-purple-700">🎮 Gaming</span>
-                                    <span className="text-xs text-purple-500">{today_earned_gaming}/{daily_cap_gaming} min heute</span>
-                                </div>
-                                <div className="h-1.5 bg-purple-200 rounded-full overflow-hidden mb-1">
-                                    <div className="h-full bg-purple-500 rounded-full transition-all"
-                                        style={{ width: `${Math.min(100, (today_earned_gaming / (daily_cap_gaming || 1)) * 100)}%` }} />
-                                </div>
-                                <p className="text-2xl font-bold text-purple-700">{balance_gaming} <span className="text-sm font-normal">min</span></p>
-                                {today_earned_gaming >= daily_cap_gaming && daily_cap_gaming > 0 && <p className="text-xs text-purple-400">Tageslimit erreicht 🎉</p>}
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-sm font-medium text-red-600">📺 YouTube</span>
-                                    <span className="text-xs text-red-400">{today_earned_youtube}/{daily_cap_youtube} min heute</span>
-                                </div>
-                                <div className="h-1.5 bg-red-200 rounded-full overflow-hidden mb-1">
-                                    <div className="h-full bg-red-500 rounded-full transition-all"
-                                        style={{ width: `${Math.min(100, (today_earned_youtube / (daily_cap_youtube || 1)) * 100)}%` }} />
-                                </div>
-                                <p className="text-2xl font-bold text-red-600">{balance_youtube} <span className="text-sm font-normal">min</span></p>
-                                {today_earned_youtube >= daily_cap_youtube && daily_cap_youtube > 0 && <p className="text-xs text-red-400">Tageslimit erreicht 🎉</p>}
-                            </div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dein Guthaben</p>
+                        <div className="text-center">
+                            <p className="text-4xl font-bold text-purple-700">{balance} <span className="text-base font-normal">min</span></p>
+                            <p className="text-xs text-gray-500 mt-1">Einlösbar für 🎮 Gaming oder 📺 YouTube</p>
                         </div>
+                        {today_earned > 0 && (
+                            <p className="text-xs text-center text-purple-500">Heute verdient: +{today_earned} min</p>
+                        )}
                     </CardContent>
                 </Card>
 

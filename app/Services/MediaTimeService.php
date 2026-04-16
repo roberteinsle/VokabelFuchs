@@ -27,21 +27,16 @@ class MediaTimeService
 
     /**
      * Preview media time earned per correct answer for a given mode and parent.
-     * Returns ['gaming' => float, 'youtube' => float].
+     * Returns the earned minutes (single pool).
      */
-    public function previewPerAnswer(string $mode, int $parentId): array
+    public function previewPerAnswer(string $mode, int $parentId): float
     {
         $rule = MediaTimeRule::where('parent_id', $parentId)->first();
 
         $base = $rule ? (float) $rule->base_minutes_per_correct : 0.50;
-        $multiplier = 1.0;
-        $gamingRate = 1.50;
-        $youtubeRate = 1.00;
 
         if ($rule) {
             $multiplier = $this->getModeMultiplier($rule, $mode);
-            $gamingRate = (float) $rule->gaming_exchange_rate;
-            $youtubeRate = (float) $rule->youtube_exchange_rate;
         } else {
             $multiplier = match ($mode) {
                 'multiple_choice' => 1.00,
@@ -51,29 +46,23 @@ class MediaTimeService
             };
         }
 
-        return [
-            'gaming' => round($base * $multiplier * $gamingRate, 1),
-            'youtube' => round($base * $multiplier * $youtubeRate, 1),
-        ];
+        return round($base * $multiplier, 1);
     }
 
     /**
      * Calculate how much media time a child earns from a training session.
-     * Returns ['gaming' => float, 'youtube' => float] in minutes.
+     * Returns earned minutes (single pool).
      */
-    public function calculateEarnings(TrainingSession $session): array
+    public function calculateEarnings(TrainingSession $session): float
     {
         $rule = MediaTimeRule::where('parent_id', $session->child->parent_id)->first();
 
         $cardsCorrect = $session->cards_correct ?? 0;
         $trainingMode = $session->training_mode?->value ?? $session->training_mode ?? 'multiple_choice';
 
-        // Answer-based calculation: only correct answers earn media time
         if ($rule) {
             $base = (float) $rule->base_minutes_per_correct;
             $multiplier = $this->getModeMultiplier($rule, $trainingMode);
-            $gamingRate = (float) $rule->gaming_exchange_rate;
-            $youtubeRate = (float) $rule->youtube_exchange_rate;
         } else {
             $base = 0.50;
             $multiplier = match ($trainingMode) {
@@ -82,21 +71,13 @@ class MediaTimeService
                 'dictation' => 2.00,
                 default => 1.0,
             };
-            $gamingRate = 1.50;
-            $youtubeRate = 1.00;
         }
 
-        $earnedMinutes = $cardsCorrect * $base * $multiplier;
-
-        return [
-            'gaming' => round($earnedMinutes * $gamingRate, 1),
-            'youtube' => round($earnedMinutes * $youtubeRate, 1),
-        ];
+        return round($cardsCorrect * $base * $multiplier, 1);
     }
 
     /**
      * Update the streak for a child after completing a training session.
-     * Returns the new streak value.
      */
     public function updateStreak(Child $child): int
     {
@@ -104,17 +85,14 @@ class MediaTimeService
         $lastDate = $child->last_trained_date ? $child->last_trained_date->toDateString() : null;
 
         if ($lastDate === $today) {
-            // Already trained today – no change
             return $child->current_streak;
         }
 
         $yesterday = Carbon::yesterday()->toDateString();
 
         if ($lastDate === $yesterday) {
-            // Consecutive day – increment streak
             $child->current_streak = ($child->current_streak ?? 0) + 1;
         } else {
-            // Streak broken or first training – reset to 1
             $child->current_streak = 1;
         }
 
@@ -126,56 +104,37 @@ class MediaTimeService
 
     /**
      * Credit earned media time to a child after finishing a session.
-     * Respects daily caps.
+     * Single unified pool — no separate gaming/youtube earning.
      */
-    public function creditFromSession(TrainingSession $session): array
+    public function creditFromSession(TrainingSession $session): float
     {
-        $earnings = $this->calculateEarnings($session);
+        $earned = $this->calculateEarnings($session);
         $child = $session->child;
-        $rule = MediaTimeRule::where('parent_id', $child->parent_id)->first();
 
-        $credited = ['gaming' => 0, 'youtube' => 0];
-
-        foreach ([MediaTimeType::GAMING, MediaTimeType::YOUTUBE] as $type) {
-            $key = $type->value;
-            $amount = $earnings[$key] ?? 0;
-
-            if ($amount <= 0) {
-                continue;
-            }
-
-            // Apply daily cap
-            if ($rule) {
-                $cap = $key === 'gaming' ? $rule->daily_cap_gaming : $rule->daily_cap_youtube;
-                $earnedToday = $this->getTodayEarned($child->id, $type);
-                $amount = min($amount, max(0, $cap - $earnedToday));
-            }
-
-            if ($amount > 0) {
-                $this->credit($child, $type, (int) round($amount), $session->id);
-                $credited[$key] = (int) round($amount);
-            }
+        if ($earned <= 0) {
+            return 0;
         }
 
-        return $credited;
+        $amount = (int) round($earned);
+        if ($amount > 0) {
+            $this->credit($child, $amount, $session->id);
+        }
+
+        return $amount;
     }
 
     /**
-     * Credit minutes to a child's balance.
+     * Credit minutes to a child's unified balance.
      */
-    public function credit(Child $child, MediaTimeType $type, int $minutes, ?int $sessionId = null): void
+    public function credit(Child $child, int $minutes, ?int $sessionId = null): void
     {
-        $balanceField = $type === MediaTimeType::GAMING
-            ? 'media_time_balance_gaming'
-            : 'media_time_balance_youtube';
-
-        $child->increment($balanceField, $minutes);
-        $newBalance = $child->fresh()->{$balanceField};
+        $child->increment('media_time_balance', $minutes);
+        $newBalance = $child->fresh()->media_time_balance;
 
         MediaTimeLog::create([
             'child_id' => $child->id,
             'training_session_id' => $sessionId,
-            'type' => $type->value,
+            'type' => 'earned',
             'action' => MediaTimeAction::EARNED->value,
             'minutes' => $minutes,
             'balance_after' => $newBalance,
@@ -183,21 +142,17 @@ class MediaTimeService
     }
 
     /**
-     * Spend minutes from a child's balance.
-     * Returns true on success, false if insufficient balance.
+     * Spend minutes from a child's unified balance.
+     * Type (gaming/youtube) is tracked for daily cap enforcement.
      */
     public function spend(Child $child, MediaTimeType $type, int $minutes): bool
     {
-        $balanceField = $type === MediaTimeType::GAMING
-            ? 'media_time_balance_gaming'
-            : 'media_time_balance_youtube';
-
-        if ($child->{$balanceField} < $minutes) {
+        if ($child->media_time_balance < $minutes) {
             return false;
         }
 
-        $child->decrement($balanceField, $minutes);
-        $newBalance = $child->fresh()->{$balanceField};
+        $child->decrement('media_time_balance', $minutes);
+        $newBalance = $child->fresh()->media_time_balance;
 
         MediaTimeLog::create([
             'child_id' => $child->id,
@@ -211,25 +166,33 @@ class MediaTimeService
     }
 
     /**
-     * Get total minutes earned today for a given type.
+     * Get total minutes earned today.
      */
-    public function getTodayEarned(int $childId, MediaTimeType $type): int
+    public function getTodayEarned(int $childId): int
     {
         return (int) MediaTimeLog::where('child_id', $childId)
-            ->where('type', $type->value)
             ->where('action', MediaTimeAction::EARNED->value)
             ->whereDate('created_at', today())
             ->sum('minutes');
     }
 
     /**
-     * Get current balance for both types.
+     * Get total minutes spent today for a given type.
      */
-    public function getBalance(Child $child): array
+    public function getTodaySpent(int $childId, MediaTimeType $type): int
     {
-        return [
-            'gaming' => $child->media_time_balance_gaming,
-            'youtube' => $child->media_time_balance_youtube,
-        ];
+        return (int) MediaTimeLog::where('child_id', $childId)
+            ->where('type', $type->value)
+            ->where('action', MediaTimeAction::SPENT->value)
+            ->whereDate('created_at', today())
+            ->sum('minutes');
+    }
+
+    /**
+     * Get current unified balance.
+     */
+    public function getBalance(Child $child): int
+    {
+        return $child->media_time_balance;
     }
 }
